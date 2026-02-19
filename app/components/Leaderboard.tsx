@@ -1,4 +1,5 @@
 import { supabase } from "@/utils/supabase/client";
+import { getTranslations } from "next-intl/server";
 
 async function getLeaderboardData() {
   const { data, error } = await supabase
@@ -15,24 +16,25 @@ async function getLeaderboardData() {
 }
 
 export async function Leaderboard() {
+  const t = await getTranslations("Leaderboard");
   const rankings = await getLeaderboardData();
 
   return (
     <div className="w-full overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
       <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-          Most Delayed Airlines
+          {t("title")}
         </h2>
-        <p className="text-sm text-zinc-500">Ranked by average delay minutes</p>
+        <p className="text-sm text-zinc-500">{t("subtitle")}</p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-zinc-500 uppercase bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800">
             <tr>
-              <th className="px-6 py-3">Airline</th>
-              <th className="px-6 py-3 text-right">Total Flights</th>
-              <th className="px-6 py-3 text-right">Avg Delay</th>
-              <th className="px-6 py-3 text-right">On-Time %</th>
+              <th className="px-6 py-3">{t("colAirline")}</th>
+              <th className="px-6 py-3 text-right">{t("colTotalFlights")}</th>
+              <th className="px-6 py-3 text-right">{t("colAvgDelay")}</th>
+              <th className="px-6 py-3 text-right">{t("colOnTime")}</th>
             </tr>
           </thead>
           <tbody>
@@ -72,7 +74,7 @@ export async function Leaderboard() {
             {rankings.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-6 py-8 text-center text-zinc-500">
-                  No data available yet.
+                  {t("noData")}
                 </td>
               </tr>
             )}

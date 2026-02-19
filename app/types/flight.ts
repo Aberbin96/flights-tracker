@@ -9,6 +9,7 @@ export enum FlightStatus {
 }
 
 export interface FlightRecord {
+  id?: number;
   flight_num: string;
   airline: string;
   origin: string;
@@ -17,4 +18,6 @@ export interface FlightRecord {
   captured_at: string;
   flight_date: string;
   arrival_estimated?: string | null;
+  arrival_actual?: string | null;
+  departure_scheduled?: string | null;
 }

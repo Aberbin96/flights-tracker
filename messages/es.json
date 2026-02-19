@@ -1,0 +1,63 @@
+{
+    "Index": {
+        "title": "Rastreador de Vuelos de Transparencia",
+        "description": "Rastreado de datos de vuelo en tiempo real para la transparencia.",
+        "lastUpdated": "Última Actualización",
+        "status": "Estado",
+        "delay": "Retraso",
+        "origin": "Origen",
+        "airline": "Aerolínea",
+        "flight": "Vuelo",
+        "searchPlaceholder": "Buscar por número de vuelo o aerolínea...",
+        "statusScheduled": "Programado",
+        "statusActive": "Activo",
+        "statusLanded": "Aterrizado",
+        "statusCancelled": "Cancelado",
+        "statusIncident": "Incidente",
+        "statusDiverted": "Desviado",
+        "statusUnknown": "Desconocido",
+        "localTime": "Hora Local",
+        "aboutLink": "Sobre este proyecto"
+    },
+    "Leaderboard": {
+        "title": "Aerolíneas Más Retrasadas",
+        "subtitle": "Clasificado por minutos de retraso promedio",
+        "colAirline": "Aerolínea",
+        "colTotalFlights": "Vuelos Totales",
+        "colAvgDelay": "Retraso Promedio",
+        "colOnTime": "A Tiempo %",
+        "noData": "No hay datos disponibles aún."
+    },
+    "CancellationChart": {
+        "title": "Cancelaciones (Últimos 30 Días)",
+        "noData": "No hay cancelaciones registradas aún"
+    },
+    "Share": {
+        "text": "¡Mira el Rastreador de Vuelos VueloTransparente! 🇻🇪✈️ Datos en tiempo real sobre retrasos y cancelaciones.",
+        "button": "Compartir"
+    },
+    "Filter": {
+        "allAirlines": "Todas las Aerolíneas",
+        "selectDate": "Seleccionar Fecha",
+        "filter": "Filtrar",
+        "reset": "Reiniciar"
+    },
+    "Metadata": {
+        "title": "Rastreador de Vuelos de Transparencia 🇻🇪",
+        "description": "Seguimiento en tiempo real de retrasos y cancelaciones de aerolíneas en Venezuela. Promoviendo la transparencia en la aviación.",
+        "keywords": "venezuela, vuelos, rastreador, maiquetia, retrasos"
+    },
+    "About": {
+        "title": "Sobre VueloTransparente",
+        "missionTitle": "Nuestra Misión",
+        "missionText": "VueloTransparente fue creado para proporcionar datos accesibles y en tiempo real sobre retrasos y cancelaciones de vuelos en Venezuela. Creemos que la transparencia es el primer paso para mejorar la calidad del servicio.",
+        "methodologyTitle": "Metodología",
+        "methodologyText": "Utilizamos la API de Aviationstack para rastrear vuelos que salen de Maiquetía (CCS). Analizamos los horarios de salida programados vs. reales para calcular los retrasos de forma independiente.",
+        "disclaimerTitle": "Aviso Legal",
+        "disclaimerText": "Esta herramienta es solo para fines informativos. Los datos se proporcionan 'tal cual' y pueden no reflejar siempre los cambios de última hora de las aerolíneas.",
+        "supportTitle": "Apoya el Proyecto",
+        "supportText": "Si encuentras útil esta herramienta, considera apoyar su mantenimiento.",
+        "buyCoffee": "Cómprame un Café",
+        "backHome": "Volver al Tablero"
+    }
+}

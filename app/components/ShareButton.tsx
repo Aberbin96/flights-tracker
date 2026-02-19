@@ -2,13 +2,14 @@
 
 import { Share2, Twitter, MessageCircle } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export function ShareButton() {
+  const t = useTranslations("Share");
   const [isOpen, setIsOpen] = useState(false);
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
-  const shareText =
-    "Check out the VueloTransparente Flight Tracker! 🇻🇪✈️ Real-time data on airline delays and cancellations.";
+  const shareText = t("text");
 
   const handleShare = (platform: "twitter" | "whatsapp") => {
     let url = "";
@@ -28,7 +29,7 @@ export function ShareButton() {
         className="flex items-center gap-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black px-4 py-2 rounded-md font-medium text-sm transition-opacity hover:opacity-90"
       >
         <Share2 className="w-4 h-4" />
-        Share
+        {t("button")}
       </button>
 
       {isOpen && (

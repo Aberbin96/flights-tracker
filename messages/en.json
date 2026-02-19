@@ -1,0 +1,63 @@
+{
+    "Index": {
+        "title": "Transparency Flights Tracker",
+        "description": "Tracking real-time flight data for transparency.",
+        "lastUpdated": "Last Updated",
+        "status": "Status",
+        "delay": "Delay",
+        "origin": "Origin",
+        "airline": "Airline",
+        "flight": "Flight",
+        "searchPlaceholder": "Search by flight number or airline...",
+        "statusScheduled": "Scheduled",
+        "statusActive": "Active",
+        "statusLanded": "Landed",
+        "statusCancelled": "Cancelled",
+        "statusIncident": "Incident",
+        "statusDiverted": "Diverted",
+        "statusUnknown": "Unknown",
+        "localTime": "Local Time",
+        "aboutLink": "About this project"
+    },
+    "Leaderboard": {
+        "title": "Most Delayed Airlines",
+        "subtitle": "Ranked by average delay minutes",
+        "colAirline": "Airline",
+        "colTotalFlights": "Total Flights",
+        "colAvgDelay": "Avg Delay",
+        "colOnTime": "On-Time %",
+        "noData": "No data available yet."
+    },
+    "CancellationChart": {
+        "title": "Cancellations (Last 30 Days)",
+        "noData": "No cancellations recorded yet"
+    },
+    "Share": {
+        "text": "Check out the VueloTransparente Flight Tracker! 🇻🇪✈️ Real-time data on airline delays and cancellations.",
+        "button": "Share"
+    },
+    "Filter": {
+        "allAirlines": "All Airlines",
+        "selectDate": "Select Date",
+        "filter": "Filter",
+        "reset": "Reset"
+    },
+    "Metadata": {
+        "title": "Transparency Flights Tracker 🇻🇪",
+        "description": "Real-time tracking of airline delays and cancellations in Venezuela. Promoting transparency in aviation.",
+        "keywords": "venezuela, flights, tracker, maiquetia, delays"
+    },
+    "About": {
+        "title": "About VueloTransparente",
+        "missionTitle": "Our Mission",
+        "missionText": "VueloTransparente was created to provide real-time, accessible data on flight delays and cancellations in Venezuela. We believe that transparency is the first step towards improving service quality.",
+        "methodologyTitle": "Methodology",
+        "methodologyText": "We use the Aviationstack API to track flights departing from Maiquetía (CCS). We analyze scheduled vs. actual departure times to calculate delays independently.",
+        "disclaimerTitle": "Disclaimer",
+        "disclaimerText": "This tool is for informational purposes only. Data is provided 'as is' and may not always reflect last-minute changes by airlines.",
+        "supportTitle": "Support the Project",
+        "supportText": "If you find this tool useful, consider supporting its maintenance.",
+        "buyCoffee": "Buy me a Coffee",
+        "backHome": "Back to Dashboard"
+    }
+}

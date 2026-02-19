@@ -11,8 +11,10 @@ import {
 } from "recharts";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
+import { useTranslations } from "next-intl";
 
 export function CancellationChart() {
+  const t = useTranslations("CancellationChart");
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,7 +57,7 @@ export function CancellationChart() {
   return (
     <div className="w-full h-[300px] bg-white dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-sm">
       <h3 className="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">
-        Cancellations (Last 30 Days)
+        {t("title")}
       </h3>
       {data.length > 0 ? (
         <ResponsiveContainer width="100%" height="100%">
@@ -96,7 +98,7 @@ export function CancellationChart() {
         </ResponsiveContainer>
       ) : (
         <div className="h-full flex items-center justify-center text-zinc-500">
-          No cancellations recorded yet
+          {t("noData")}
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import axios from "axios";
 import { supabaseAdmin } from "@/utils/supabase/admin";
 import { FlightStatus, FlightRecord } from "@/app/types/flight";
+import { OpenSkyClient } from "@/utils/opensky/client";
 
 export const dynamic = "force-dynamic"; // Prevent caching of this route
 
@@ -21,21 +22,41 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 2. Fetch Data from Aviationstack
-    const response = await axios.get(
-      "http://api.aviationstack.com/v1/flights",
-      {
-        params: {
-          access_key: AVIATION_API_KEY,
-          dep_iata: "CCS",
-          limit: 100,
-        },
-      },
-    );
+    // 2. Fetch Data from Aviationstack for Multiple Airports
+    const AIRPORTS = ["CCS", "MAR", "VLN", "PMV", "BLA"];
+    let allFlights: any[] = [];
 
-    const flights = response.data.data || [];
+    console.log(`Starting sync for airports: ${AIRPORTS.join(", ")}`);
 
-    console.log("Flights fetched:", flights.length);
+    for (const airport of AIRPORTS) {
+      try {
+        console.log(`Fetching flights for ${airport}...`);
+        const response = await axios.get(
+          "http://api.aviationstack.com/v1/flights",
+          {
+            params: {
+              access_key: AVIATION_API_KEY,
+              dep_iata: airport,
+              limit: 100,
+            },
+            timeout: 10000, // 10s timeout per request
+          },
+        );
+
+        const data = response.data.data || [];
+        console.log(`  ${airport}: Found ${data.length} flights.`);
+        allFlights = [...allFlights, ...data];
+
+        // Small delay to be nice to the API
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      } catch (err) {
+        console.error(`Failed to fetch ${airport}:`, err);
+        // Continue to next airport
+      }
+    }
+
+    const flights = allFlights;
+    console.log("Total flights fetched:", flights.length);
 
     // 3. Filter & Transform Data
     const recordsToInsert: FlightRecord[] = flights
@@ -70,16 +91,39 @@ export async function GET(request: Request) {
         const arrivalEstimated =
           flight.arrival.estimated || flight.arrival.scheduled || null;
 
+        // Extract actual arrival time
+        const arrivalActual = flight.arrival.actual || null;
+
+        // Prioritize actual arrival status
+        if (arrivalActual) {
+          status = FlightStatus.LANDED;
+        }
+
+        // Manual Delay Calculation
+        let delayMinutes = flight.departure.delay || 0;
+        if (flight.departure.scheduled && flight.departure.actual) {
+          const scheduledTime = new Date(flight.departure.scheduled).getTime();
+          const actualTime = new Date(flight.departure.actual).getTime();
+          const diffMinutes = Math.round((actualTime - scheduledTime) / 60000);
+          // Treat early or on-time as 0 delay, otherwise use the difference
+          delayMinutes = Math.max(0, diffMinutes);
+        }
+
+        // Extract scheduled departure time
+        const departureScheduled = flight.departure.scheduled || null;
+
         return {
           flight_num: flightNum,
           airline: airline,
           origin: origin,
           status: status,
-          delay_minutes: flight.departure.delay || 0,
+          delay_minutes: delayMinutes,
           captured_at: new Date().toISOString(),
           flight_date: flightDate,
           arrival_estimated: arrivalEstimated,
-        };
+          arrival_actual: arrivalActual,
+          departure_scheduled: departureScheduled,
+        } as FlightRecord;
       })
       .filter((record: FlightRecord) => {
         // Filter out records that are completely broken/useless
@@ -97,8 +141,50 @@ export async function GET(request: Request) {
     });
     const uniqueRecords = Array.from(uniqueRecordsMap.values());
 
+    // 4. Multi-Source Verification (OpenSky)
+    // Filter for flights that are currently "active" or "scheduled" and departing soon to check against ADS-B
+    const activeFlights = uniqueRecords.filter(
+      (f) => f.status === FlightStatus.ACTIVE,
+    );
+
+    if (activeFlights.length > 0) {
+      console.log(
+        `Verifying ${activeFlights.length} active flights with OpenSky Network...`,
+      );
+      try {
+        const openSkyFlights = await OpenSkyClient.getFlightsInVenezuela();
+        console.log(
+          `OpenSky reports ${openSkyFlights.length} airborne flights in region.`,
+        );
+
+        for (const flight of activeFlights) {
+          // flight_num is usually the IATA code (e.g. QL1966).
+          // OpenSky uses callsigns which often match or contain the IATA/ICAO code.
+          // We'll try to match loosely.
+          const isVerified = await OpenSkyClient.verifyFlightActive(
+            flight.flight_num,
+            openSkyFlights,
+          );
+
+          if (isVerified) {
+            console.log(
+              `✅ Flight ${flight.flight_num} VERIFIED airborne by OpenSky.`,
+            );
+            // TODO: Update a 'verified' column in DB
+          } else {
+            console.warn(
+              `⚠️ Flight ${flight.flight_num} status is ACTIVE but not found in OpenSky ADS-B data.`,
+            );
+          }
+        }
+      } catch (err) {
+        console.error("OpenSky Verification Failed:", err);
+        // Continue with sync even if verification fails
+      }
+    }
+
     if (uniqueRecords.length > 0) {
-      // 4. Insert into Supabase (Upsert using Admin Client to bypass RLS)
+      // 5. Insert into Supabase (Upsert using Admin Client to bypass RLS)
       const { error } = await supabaseAdmin.from("flights_history").upsert(
         uniqueRecords,
         { onConflict: "flight_num, flight_date" }, // Ensure unique constraint is respected
@@ -112,7 +198,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       message: "Sync successful",
-      count: recordsToInsert.length,
+      count: uniqueRecords.length,
+      active_verified: activeFlights.length,
     });
   } catch (error: any) {
     console.error("Sync Error:", error);

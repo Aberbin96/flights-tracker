@@ -7,11 +7,15 @@ import {
   XCircle,
 } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 interface FlightCardProps {
   flight: FlightRecord;
 }
 
 export function FlightCard({ flight }: FlightCardProps) {
+  const t = useTranslations("Index");
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "active":
@@ -32,6 +36,8 @@ export function FlightCard({ flight }: FlightCardProps) {
   };
 
   const statusColor = getStatusColor(flight.status);
+  const statusKey = `status${flight.status.charAt(0).toUpperCase() + flight.status.slice(1).toLowerCase()}`;
+  const translatedStatus = t.has(statusKey) ? t(statusKey) : flight.status;
 
   return (
     <div className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm hover:shadow-md transition-shadow">
@@ -48,13 +54,13 @@ export function FlightCard({ flight }: FlightCardProps) {
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium uppercase ${statusColor}`}
         >
-          {flight.status}
+          {translatedStatus}
         </span>
       </div>
 
       <div className="flex justify-between items-center mt-4">
         <div className="text-left">
-          <p className="text-xs text-zinc-500 uppercase">Origin</p>
+          <p className="text-xs text-zinc-500 uppercase">{t("origin")}</p>
           <p className="font-semibold text-zinc-800 dark:text-zinc-200">
             {flight.origin}
           </p>
