@@ -15,4 +15,6 @@ export interface FlightRecord {
   status: FlightStatus | string;
   delay_minutes: number;
   captured_at: string;
+  flight_date: string;
+  arrival_estimated?: string | null;
 }
