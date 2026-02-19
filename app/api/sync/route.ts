@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
 import { supabaseAdmin } from "@/utils/supabase/admin";
-import { FlightStatus, FlightRecord } from "@/app/types/flight";
+import { FlightStatus, FlightRecord } from "@/types/flight";
 import { OpenSkyClient } from "@/utils/opensky/client";
 import * as Sentry from "@sentry/nextjs";
 
