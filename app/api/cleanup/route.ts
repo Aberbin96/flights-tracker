@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     // 3. Update Stale Records
     const { data, error } = await supabaseAdmin
       .from("flights_history")
-      .update({ status: "unknown" })
+      .update({ status: "unknown", is_system_closed: true })
       .eq("status", "active")
       .lt(
         "arrival_estimated",
@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     // Threshold: 6 hours past scheduled departure
     const { data: noShowData, error: noShowError } = await supabaseAdmin
       .from("flights_history")
-      .update({ status: "unknown" })
+      .update({ status: "unknown", is_system_closed: true })
       .eq("status", "scheduled")
       .lt(
         "departure_scheduled",
@@ -86,7 +86,7 @@ export async function GET(request: Request) {
             );
             await supabaseAdmin
               .from("flights_history")
-              .update({ status: "unknown" })
+              .update({ status: "unknown", is_system_closed: true })
               .eq("id", flight.id); // Assuming id is PK
 
             ghostCount++;

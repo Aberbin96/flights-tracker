@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
+  Bot,
 } from "lucide-react";
 
 import { useTranslations } from "next-intl";
@@ -51,11 +52,21 @@ export function FlightCard({ flight }: FlightCardProps) {
             {flight.flight_num}
           </p>
         </div>
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium uppercase ${statusColor}`}
-        >
-          {translatedStatus}
-        </span>
+        <div className="flex items-center gap-2">
+          {flight.is_system_closed && (
+            <div
+              className="p-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 cursor-help"
+              title={t("autoClosedTooltip") || "Auto-closed: No official data"}
+            >
+              <Bot className="w-4 h-4" />
+            </div>
+          )}
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium uppercase ${statusColor}`}
+          >
+            {translatedStatus}
+          </span>
+        </div>
       </div>
 
       <div className="flex justify-between items-center mt-4">

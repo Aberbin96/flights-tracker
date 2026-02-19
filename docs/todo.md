@@ -59,5 +59,6 @@ These are tasks I can implement for you.
 - [x] **Multi-Source Verification**: Integrate OpenSky Network or similar to cross-reference aircraft positions.
 - [x] **Ghost Flight Heuristics**: Analyze ground speed/GPS updates to detect stalled/cancelled flights marked as active.
 - [ ] **Airport Board Scraping**: Compare API data against scraped data from Maiquetía Airport digital board.
+- [x] **Auto-Closure Indicator**: Visual indicator (Bot icon) for flights closed by system cleanup logic.
 
 ### RAW
