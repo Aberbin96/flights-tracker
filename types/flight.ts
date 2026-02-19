@@ -20,4 +20,5 @@ export interface FlightRecord {
   arrival_estimated?: string | null;
   arrival_actual?: string | null;
   departure_scheduled?: string | null;
+  is_system_closed?: boolean;
 }
