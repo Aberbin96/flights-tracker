@@ -1,14 +1,13 @@
 import { supabase } from "@/utils/supabase/client";
-import { FlightCard } from "../components/FlightCard";
-import { Leaderboard } from "../components/Leaderboard";
-import { CancellationChart } from "../components/CancellationChart";
-import { FlightRecord } from "../types/flight";
+import { FlightCard } from "@/components/FlightCard";
+import { Leaderboard } from "@/components/Leaderboard";
+import { CancellationChart } from "@/components/CancellationChart";
+import { FlightRecord } from "@/types/flight";
 import { AlertCircle, Plane } from "lucide-react";
-import { LanguageSwitcher } from "../components/LanguageSwitcher";
-import { ShareButton } from "../components/ShareButton";
-import { FilterBar } from "../components/FilterBar";
-import { LocalClock } from "../components/LocalClock";
-import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ShareButton } from "@/components/ShareButton";
+import { FilterBar } from "@/components/FilterBar";
+import { LocalClock } from "@/components/LocalClock";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";

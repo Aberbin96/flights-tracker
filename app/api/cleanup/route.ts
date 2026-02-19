@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/utils/supabase/admin";
 import { OpenSkyClient } from "@/utils/opensky/client";
+import * as Sentry from "@sentry/nextjs";
 
 export const dynamic = "force-dynamic";
 
@@ -108,6 +109,7 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     console.error("Cleanup Unexpected Error:", error);
+    Sentry.captureException(error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
       { status: 500 },

@@ -3,6 +3,7 @@ import axios from "axios";
 import { supabaseAdmin } from "@/utils/supabase/admin";
 import { FlightStatus, FlightRecord } from "@/app/types/flight";
 import { OpenSkyClient } from "@/utils/opensky/client";
+import * as Sentry from "@sentry/nextjs";
 
 export const dynamic = "force-dynamic"; // Prevent caching of this route
 
@@ -203,6 +204,7 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     console.error("Sync Error:", error);
+    Sentry.captureException(error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
       { status: 500 },
