@@ -26,20 +26,20 @@ export function FleetActivity({ flights }: FleetActivityProps) {
 
   return (
     <div className="xl:col-span-2 bg-white/80 dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800 overflow-hidden shadow-sm h-fit">
-      <div className="p-5 border-b border-slate-100 dark:border-slate-800">
+      <div className="p-3 sm:p-5 border-b border-slate-100 dark:border-slate-800">
         <h3 className="font-bold text-slate-800 dark:text-white">
           {t("fleetActivity")}
         </h3>
         <p className="text-xs text-slate-500 mt-1">{t("legend")}</p>
       </div>
-      <div className="p-6 flex flex-col gap-6">
+      <div className="p-3 sm:p-6 flex flex-col gap-3 sm:gap-6">
         {airlines.map((airline) => (
           <div
             key={airline}
-            className="flex flex-col sm:flex-row sm:items-center gap-4"
+            className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"
           >
-            <div className="w-32 flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <div className="w-28 sm:w-32 flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
                 {airline}
               </span>
             </div>
@@ -65,7 +65,7 @@ export function FleetActivity({ flights }: FleetActivityProps) {
                   >
                     <Icon
                       name="flight"
-                      className={`${colorClass} text-lg cursor-help hover:scale-110 transition-transform`}
+                      className={`${colorClass} text-base sm:text-lg cursor-help hover:scale-110 transition-transform`}
                     />
                   </Tooltip>
                 );

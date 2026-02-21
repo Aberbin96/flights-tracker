@@ -164,7 +164,7 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
 
           <div className="border-b border-slate-200/60 dark:border-slate-800 pb-6">
             <h3 className="text-slate-800 dark:text-white text-sm font-bold uppercase tracking-wider mb-4">
-              {t("dateRange")}
+              {t("date")}
             </h3>
             <div className="flex flex-col gap-3">
               <div className="relative">

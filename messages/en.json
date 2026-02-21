@@ -51,16 +51,13 @@
         "keywords": "venezuela, flights, tracker, maiquetia, delays"
     },
     "About": {
-        "title": "About VueloTransparente",
+        "title": "About this Project",
         "missionTitle": "Our Mission",
-        "missionText": "VueloTransparente was created to provide real-time, accessible data on flight delays and cancellations in Venezuela. We believe that transparency is the first step towards improving service quality.",
+        "missionText": "This project focuses on the fundamental importance of transparency and accountability in the aviation sector. By providing accessible, real-time data on delays and cancellations, we aim to empower citizens and passengers with the information needed to advocate for better service standards.",
         "methodologyTitle": "Methodology",
-        "methodologyText": "We use the Aviationstack API to track flights departing from Maiquetía (CCS). We analyze scheduled vs. actual departure times to calculate delays independently.",
+        "methodologyText": "We utilize official data sources to track flights departing from high-traffic hubs like Maiquetía (CCS). We focus on these key airports as they represent the majority of scheduled traffic, allowing us to maintain high data accuracy and provide the most representative view of the country's aviation performance.",
         "disclaimerTitle": "Disclaimer",
         "disclaimerText": "This tool is for informational purposes only. Data is provided 'as is' and may not always reflect last-minute changes by airlines.",
-        "supportTitle": "Support the Project",
-        "supportText": "If you find this tool useful, consider supporting its maintenance.",
-        "buyCoffee": "Buy me a Coffee",
         "backHome": "Back to Dashboard"
     },
     "Dashboard": {
@@ -70,7 +67,7 @@
         "share": "Share",
         "coffee": "Coffee",
         "airports": "Airports",
-        "dateRange": "Date Range",
+        "date": "Date",
         "applyFilters": "Apply Filters",
         "noAirports": "No airports found",
         "totalFlights": "Today's Flights",

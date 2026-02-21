@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sync": "curl -H 'Authorization: Bearer venezuela' http://localhost:3000/api/sync",
+    "cleanup": "curl -H 'Authorization: Bearer venezuela' http://localhost:3000/api/cleanup"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.39.0",
