@@ -107,6 +107,8 @@
         "allCompanyTypes": "Todo (Comercial + Carga)",
         "commercial": "Comercial Solamente",
         "cargo": "Carga / Privado Solamente",
+        "public": "Pública / Estatal",
+        "private": "Empresas Privadas",
         "originAirport": "Aeropuerto de Origen",
         "cargoDeliveryTooltip": "Vuelo de Carga / Entrega",
         "info": "Info"

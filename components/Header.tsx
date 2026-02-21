@@ -109,17 +109,15 @@ export function Header() {
           </span>
         </Button>
 
-        <Tooltip content={t("aboutLink", { fallback: "About this project" })}>
-          <a
-            href={`/${locale}/about`}
-            className="flex-1 lg:flex-none flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/50 dark:border-transparent transition-all shadow-sm h-10 lg:h-9 px-4"
-          >
-            <Icon name="info" className="text-xl" />
-            <span className="text-sm font-bold lg:hidden tracking-wide">
-              {t("info")}
-            </span>
-          </a>
-        </Tooltip>
+        <a
+          href={`/${locale}/about`}
+          className="flex-1 lg:flex-none flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/50 dark:border-transparent transition-all shadow-sm h-10 lg:h-9 px-4"
+        >
+          <Icon name="info" className="text-xl" />
+          <span className="text-sm font-bold lg:hidden tracking-wide">
+            {t("info")}
+          </span>
+        </a>
       </div>
     </header>
   );

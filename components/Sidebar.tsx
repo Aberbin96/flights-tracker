@@ -259,6 +259,8 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
               <option value="all">{t("allCompanyTypes")}</option>
               <option value="commercial">{t("commercial")}</option>
               <option value="cargo">{t("cargo")}</option>
+              <option value="public">{t("public")}</option>
+              <option value="private">{t("private")}</option>
             </select>
           </div>
 

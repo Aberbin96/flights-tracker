@@ -107,6 +107,8 @@
         "allCompanyTypes": "All (Commercial + Cargo)",
         "commercial": "Commercial Only",
         "cargo": "Cargo / Private Only",
+        "public": "Public / State-owned",
+        "private": "Private Companies",
         "originAirport": "Origin Airport",
         "cargoDeliveryTooltip": "Cargo / Delivery Flight",
         "info": "Info"

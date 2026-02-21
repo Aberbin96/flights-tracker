@@ -9,7 +9,11 @@ import {
 } from "@/components/AirlinePerformance";
 import { FleetActivity } from "@/components/FleetActivity";
 import { FlightTable } from "@/components/FlightTable";
-import { CARGO_AIRLINES, VZLA_IATA } from "@/constants/flights";
+import {
+  CARGO_AIRLINES,
+  VZLA_IATA,
+  PUBLIC_AIRLINES,
+} from "@/constants/flights";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +84,12 @@ function applyFiltersToQuery(
     filteredQuery = filteredQuery.not("airline", "in", formattedAirlines);
   } else if (companyType === "cargo") {
     filteredQuery = filteredQuery.in("airline", CARGO_AIRLINES);
+  } else if (companyType === "public") {
+    filteredQuery = filteredQuery.in("airline", PUBLIC_AIRLINES);
+  } else if (companyType === "private") {
+    const allPublicAndCargo = [...PUBLIC_AIRLINES, ...CARGO_AIRLINES];
+    const formattedAirlines = `(${allPublicAndCargo.map((a) => `"${a}"`).join(",")})`;
+    filteredQuery = filteredQuery.not("airline", "in", formattedAirlines);
   }
 
   // Domestic vs International Heuristic

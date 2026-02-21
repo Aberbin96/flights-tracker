@@ -4,6 +4,8 @@ export const CARGO_AIRLINES = [
   "Aerosucre",
 ];
 
+export const PUBLIC_AIRLINES = ["Conviasa"];
+
 export const VZLA_IATA = [
   "CCS",
   "VLN",

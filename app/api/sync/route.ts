@@ -124,6 +124,7 @@ export async function GET(request: Request) {
           arrival_actual: arrivalActual,
           departure_scheduled: departureScheduled,
           arrival_iata: arrivalIata,
+          is_system_closed: false,
         } as FlightRecord;
       })
       .filter((record: FlightRecord) => {

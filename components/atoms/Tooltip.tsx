@@ -35,13 +35,15 @@ export function Tooltip({ content, children, position = "top" }: TooltipProps) {
     >
       {children}
       {isVisible && (
-        <div
-          className={`absolute z-[100] px-3 py-1.5 text-xs font-semibold text-white bg-slate-800 dark:bg-slate-700 rounded-lg shadow-xl backdrop-blur-md animate-in fade-in zoom-in duration-200 fill-mode-forwards ${positionClasses[position]}`}
-        >
-          <div className="whitespace-nowrap">{content}</div>
+        <div className={`absolute z-[100] ${positionClasses[position]}`}>
           <div
-            className={`absolute border-4 border-transparent ${arrowClasses[position]}`}
-          />
+            className={`relative px-3 py-1.5 text-xs font-semibold text-white bg-slate-800 dark:bg-slate-700 rounded-lg shadow-xl backdrop-blur-md opacity-0 animate-tooltip-in whitespace-nowrap`}
+          >
+            {content}
+            <div
+              className={`absolute border-4 border-transparent ${arrowClasses[position]}`}
+            />
+          </div>
         </div>
       )}
     </div>
