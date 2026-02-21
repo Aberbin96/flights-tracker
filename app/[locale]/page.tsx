@@ -64,11 +64,17 @@ async function getRecentFlights(origin?: string, date?: string) {
 }
 
 // Fetch pre-aggregated global KPIs for the target date from the view
-async function getDailyKpis(date: string) {
-  const { data, error } = await supabase
+async function getDailyKpis(date: string, origin?: string) {
+  let query = supabase
     .from("daily_metrics_view")
     .select("*")
     .eq("flight_date", date);
+
+  if (origin) {
+    query = query.eq("origin", origin);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching KPIs from view:", error);
@@ -100,9 +106,9 @@ async function getDailyKpis(date: string) {
 async function getAirlinePerformance(
   targetDate: string,
 ): Promise<AirlineStats[]> {
-  const { data, error } = await supabase
-    .from("airline_daily_performance_view")
-    .select("*");
+  let query = supabase.from("airline_daily_performance_view").select("*");
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching airline performance from view:", error);
@@ -149,6 +155,7 @@ async function getAirlinePerformance(
           stats.todayFlights > 0
             ? (stats.todayOnTime / stats.todayFlights) * 100
             : 0,
+        today_flights: stats.todayFlights,
       });
     }
   });
@@ -166,9 +173,10 @@ export default async function Home({ params, searchParams }: PageProps) {
   const resolvedSearchParams = await searchParams;
 
   const originFilter =
-    typeof resolvedSearchParams.origin === "string"
+    typeof resolvedSearchParams.origin === "string" &&
+    resolvedSearchParams.origin !== ""
       ? resolvedSearchParams.origin
-      : "CCS";
+      : undefined;
   const dateFilter =
     typeof resolvedSearchParams.date === "string"
       ? resolvedSearchParams.date
@@ -185,7 +193,7 @@ export default async function Home({ params, searchParams }: PageProps) {
       getAirports(),
       getMinDate(),
       getAirlinePerformance(effectiveTargetDate),
-      getDailyKpis(effectiveTargetDate),
+      getDailyKpis(effectiveTargetDate, originFilter),
     ]);
 
   const {

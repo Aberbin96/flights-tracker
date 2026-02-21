@@ -62,11 +62,12 @@ export function Sidebar({ airports, minDate }: SidebarProps) {
   };
 
   const handleAirportClick = (code: string) => {
-    if (selectedAirport === code) {
-      setSelectedAirport("");
-    } else {
-      setSelectedAirport(code);
-    }
+    setSelectedAirport(code);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("origin", code);
+    params.set("date", selectedDate);
+    router.push(`?${params.toString()}`);
   };
 
   return (

@@ -27,11 +27,8 @@ export async function GET(request: Request) {
     const AIRPORTS = ["CCS", "MAR", "VLN", "PMV", "BLA"];
     let allFlights: any[] = [];
 
-    console.log(`Starting sync for airports: ${AIRPORTS.join(", ")}`);
-
     for (const airport of AIRPORTS) {
       try {
-        console.log(`Fetching flights for ${airport}...`);
         const response = await axios.get(
           "http://api.aviationstack.com/v1/flights",
           {
@@ -45,7 +42,6 @@ export async function GET(request: Request) {
         );
 
         const data = response.data.data || [];
-        console.log(`  ${airport}: Found ${data.length} flights.`);
         allFlights = [...allFlights, ...data];
 
         // Small delay to be nice to the API
@@ -57,7 +53,6 @@ export async function GET(request: Request) {
     }
 
     const flights = allFlights;
-    console.log("Total flights fetched:", flights.length);
 
     // 3. Filter & Transform Data
     const recordsToInsert: FlightRecord[] = flights
@@ -149,14 +144,8 @@ export async function GET(request: Request) {
     );
 
     if (activeFlights.length > 0) {
-      console.log(
-        `Verifying ${activeFlights.length} active flights with OpenSky Network...`,
-      );
       try {
         const openSkyFlights = await OpenSkyClient.getFlightsInVenezuela();
-        console.log(
-          `OpenSky reports ${openSkyFlights.length} airborne flights in region.`,
-        );
 
         for (const flight of activeFlights) {
           // flight_num is usually the IATA code (e.g. QL1966).
@@ -166,17 +155,6 @@ export async function GET(request: Request) {
             flight.flight_num,
             openSkyFlights,
           );
-
-          if (isVerified) {
-            console.log(
-              `✅ Flight ${flight.flight_num} VERIFIED airborne by OpenSky.`,
-            );
-            // TODO: Update a 'verified' column in DB
-          } else {
-            console.warn(
-              `⚠️ Flight ${flight.flight_num} status is ACTIVE but not found in OpenSky ADS-B data.`,
-            );
-          }
         }
       } catch (err) {
         console.error("OpenSky Verification Failed:", err);
