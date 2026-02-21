@@ -122,19 +122,6 @@ export function Sidebar({ airports, minDate }: SidebarProps) {
             <Button onClick={applyFilters} variant="primary" fullWidth>
               {t("applyFilters")}
             </Button>
-            {(selectedAirport || selectedDate) && (
-              <Button
-                onClick={() => {
-                  setSelectedAirport("");
-                  setSelectedDate("");
-                  router.push("/?origin=&date=");
-                }}
-                variant="secondary"
-                fullWidth
-              >
-                {t("clearFilters")}
-              </Button>
-            )}
           </div>
         </div>
       </div>
