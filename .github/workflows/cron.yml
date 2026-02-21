@@ -7,14 +7,14 @@ on:
     # Target: 8:00 AM, 3:00 PM, 9:00 PM UTC (3 times a day)
     # Why: Stays cleanly under the 500 requests/month free tier limit.
     # -------------------------------------------------------------
-    - cron: '0 8,15,21 * * *'
+    - cron: "0 8,15,21 * * *"
 
     # -------------------------------------------------------------
     # SCHEDULE 2: Database Cleanup Engine
     # Target: Every hour at minute 30 (e.g., 8:30, 9:30, 10:30)
     # Why: Does not use Aviation API, just cleans up ghosts/stale flights.
     # -------------------------------------------------------------
-    - cron: '30 * * * *'
+    - cron: "30 * * * *"
 
   # Allow manual triggering from the GitHub Actions tab
   workflow_dispatch:
@@ -23,10 +23,11 @@ jobs:
   run-sync:
     name: Run API Sync Job
     runs-on: ubuntu-latest
-    
+    environment: Production
+
     # We only want to run the Sync job natively on the 8,15,21 schedule (or manually)
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 8,15,21 * * *'
-    
+
     steps:
       - name: Hit /api/sync endpoint
         run: |
@@ -37,7 +38,8 @@ jobs:
   run-cleanup:
     name: Run Database Cleanup Job
     runs-on: ubuntu-latest
-    
+    environment: Production
+
     # We only want to run the Cleanup job natively on the hourly schedule (or manually)
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '30 * * * *'
 
