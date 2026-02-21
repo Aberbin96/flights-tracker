@@ -1,8 +1,9 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f9f9fb; /* Slightly warmer/softer off-white for main bg */
+  --foreground: #0f172a; /* Slate 900 for high-contrast crisp text */
 }
 
 @theme inline {
@@ -10,17 +11,23 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-primary: #3b82f6; /* Modern Blue 500 for a vibrant punch */
+  --color-primary-dark: #2563eb; /* Blue 600 for hovers */
+  --color-primary-light: #eff6ff; /* Blue 50 for subtle highlights */
+  --color-primary-400: #60a5fa; /* Blue 400 for dark mode text */
+
+  --color-background-light: #f1f5f9; /* Slate 100 for sidebars/sections */
+  --color-background-dark: #131220; /* Keep dark mode background */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #f8fafc;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Inter", sans-serif;
 }

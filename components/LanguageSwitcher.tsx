@@ -1,13 +1,14 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { Globe } from "lucide-react";
 
 export function LanguageSwitcher() {
   const locale = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
   const toggleLanguage = () => {
@@ -15,12 +16,13 @@ export function LanguageSwitcher() {
     startTransition(() => {
       // In next-intl w/ Next.js App Router, switching locale usually involves just navigating
       // to the new path prefix.
-      // However, we need to respect the current path.
-      // A simple way is to replace the current locale segment in the pathname.
-      const currentPath = window.location.pathname;
-      const segments = currentPath.split("/");
-      segments[1] = nextLocale;
-      const newPath = segments.join("/");
+      if (!pathname) return;
+
+      const segments = pathname.split("/");
+      if (segments.length > 1) {
+        segments[1] = nextLocale;
+      }
+      const newPath = segments.join("/") || `/${nextLocale}`;
       router.replace(newPath);
     });
   };
