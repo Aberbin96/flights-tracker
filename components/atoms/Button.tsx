@@ -1,4 +1,4 @@
-import React from "react";
+import { Tooltip } from "./Tooltip";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "outline" | "ghost" | "icon";
@@ -12,6 +12,7 @@ export function Button({
   fullWidth = false,
   className = "",
   children,
+  title,
   ...props
 }: ButtonProps) {
   const baseStyles =
@@ -38,9 +39,19 @@ export function Button({
 
   const finalClassName = `${baseStyles} ${variants[variant]} ${sizes[size]} ${fullWidth ? "w-full" : ""} ${className}`;
 
-  return (
+  const buttonElement = (
     <button className={finalClassName} {...props}>
       {children}
     </button>
   );
+
+  if (title) {
+    return (
+      <Tooltip content={title} position="bottom">
+        {buttonElement}
+      </Tooltip>
+    );
+  }
+
+  return buttonElement;
 }

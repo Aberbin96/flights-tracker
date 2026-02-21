@@ -6,6 +6,8 @@ import { useState, useMemo } from "react";
 import { Icon } from "./atoms/Icon";
 import { Badge, BadgeVariant } from "./atoms/Badge";
 import { Button } from "./atoms/Button";
+import { CARGO_AIRLINES } from "@/constants/flights";
+import { Tooltip } from "./atoms/Tooltip";
 
 interface FlightTableProps {
   flights: FlightRecord[];
@@ -141,21 +143,34 @@ export function FlightTable({ flights }: FlightTableProps) {
                     {flight.flight_num}
                   </td>
                   <td className="px-5 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    {flight.airline}
+                    <div className="flex items-center gap-2">
+                      {CARGO_AIRLINES.includes(flight.airline) && (
+                        <Tooltip content={t("cargoDeliveryTooltip")}>
+                          <span className="text-amber-500 bg-amber-50 dark:bg-amber-900/30 rounded p-1 flex items-center">
+                            <Icon
+                              name="local_shipping"
+                              className="text-[14px]"
+                            />
+                          </span>
+                        </Tooltip>
+                      )}
+                      <span>{flight.airline}</span>
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-sm text-slate-500 dark:text-slate-400">
                     {flight.origin}
                   </td>
                   <td className="px-5 py-4 flex items-center gap-1.5">
                     {flight.is_system_closed && (
-                      <span
-                        title={
+                      <Tooltip
+                        content={
                           t("systemClosedToolTip") || "Auto-closed by system"
                         }
-                        className="text-slate-400 bg-slate-100 dark:bg-slate-800 rounded px-1 flex items-center cursor-help"
                       >
-                        <Icon name="smart_toy" className="text-[14px]" />
-                      </span>
+                        <span className="text-slate-400 bg-slate-100 dark:bg-slate-800 rounded px-1 flex items-center cursor-help">
+                          <Icon name="smart_toy" className="text-[14px]" />
+                        </span>
+                      </Tooltip>
                     )}
                     <Badge variant={badgeVariant} text={statusText} />
                   </td>

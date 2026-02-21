@@ -9,6 +9,7 @@ import {
 } from "@/components/AirlinePerformance";
 import { FleetActivity } from "@/components/FleetActivity";
 import { FlightTable } from "@/components/FlightTable";
+import { CARGO_AIRLINES, VZLA_IATA } from "@/constants/flights";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,20 @@ async function getAirports() {
   return uniqueOrigins;
 }
 
+// Fetch distinct airlines for the filter
+async function getAirlines() {
+  const { data, error } = await supabase
+    .from("flights_history")
+    .select("airline");
+
+  if (error) return [];
+
+  const uniqueAirlines = Array.from(new Set(data.map((item) => item.airline)))
+    .filter(Boolean)
+    .sort();
+  return uniqueAirlines;
+}
+
 // Fetch min date for the calendar
 async function getMinDate() {
   const { data, error } = await supabase
@@ -38,21 +53,70 @@ async function getMinDate() {
   return data[0].flight_date;
 }
 
+// Helper to apply common filters to any query targeting flights or views
+function applyFiltersToQuery(
+  query: any,
+  {
+    origin,
+    airline,
+    companyType,
+    national,
+    international,
+  }: {
+    origin?: string;
+    airline?: string;
+    companyType?: string;
+    national?: string;
+    international?: string;
+  },
+) {
+  let filteredQuery = query;
+  if (origin) filteredQuery = filteredQuery.eq("origin", origin);
+  if (airline) filteredQuery = filteredQuery.eq("airline", airline);
+
+  // Cargo/Private Airlines Heuristic
+  if (companyType === "commercial") {
+    const formattedAirlines = `(${CARGO_AIRLINES.map((a) => `"${a}"`).join(",")})`;
+    filteredQuery = filteredQuery.not("airline", "in", formattedAirlines);
+  } else if (companyType === "cargo") {
+    filteredQuery = filteredQuery.in("airline", CARGO_AIRLINES);
+  }
+
+  // Domestic vs International Heuristic
+  if (national === "false" && international !== "false") {
+    const formattedIata = `(${VZLA_IATA.map((a) => `"${a}"`).join(",")})`;
+    filteredQuery = filteredQuery.not("arrival_iata", "in", formattedIata);
+  } else if (international === "false" && national !== "false") {
+    filteredQuery = filteredQuery.in("arrival_iata", VZLA_IATA);
+  }
+
+  return filteredQuery;
+}
+
 // Updated fetch function with filters
-async function getRecentFlights(origin?: string, date?: string) {
+async function getRecentFlights(
+  origin?: string,
+  date?: string,
+  airline?: string,
+  companyType?: string,
+  national?: string,
+  international?: string,
+) {
   let query = supabase
     .from("flights_history")
     .select("*")
     .order("captured_at", { ascending: false })
     .limit(3000);
 
-  if (origin) {
-    query = query.eq("origin", origin);
-  }
+  if (date) query = query.eq("flight_date", date);
 
-  if (date) {
-    query = query.eq("flight_date", date);
-  }
+  query = applyFiltersToQuery(query, {
+    origin,
+    airline,
+    companyType,
+    national,
+    international,
+  });
 
   const { data, error } = await query;
 
@@ -64,15 +128,26 @@ async function getRecentFlights(origin?: string, date?: string) {
 }
 
 // Fetch pre-aggregated global KPIs for the target date from the view
-async function getDailyKpis(date: string, origin?: string) {
+async function getDailyKpis(
+  date: string,
+  origin?: string,
+  airline?: string,
+  companyType?: string,
+  national?: string,
+  international?: string,
+) {
   let query = supabase
     .from("daily_metrics_view")
     .select("*")
     .eq("flight_date", date);
 
-  if (origin) {
-    query = query.eq("origin", origin);
-  }
+  query = applyFiltersToQuery(query, {
+    origin,
+    airline,
+    companyType,
+    national,
+    international,
+  });
 
   const { data, error } = await query;
 
@@ -105,8 +180,21 @@ async function getDailyKpis(date: string, origin?: string) {
 // Fetch pre-aggregated Airline Performance from the view
 async function getAirlinePerformance(
   targetDate: string,
+  origin?: string,
+  airline?: string,
+  companyType?: string,
+  national?: string,
+  international?: string,
 ): Promise<AirlineStats[]> {
   let query = supabase.from("airline_daily_performance_view").select("*");
+
+  query = applyFiltersToQuery(query, {
+    origin,
+    airline,
+    companyType,
+    national,
+    international,
+  });
 
   const { data, error } = await query;
 
@@ -182,18 +270,57 @@ export default async function Home({ params, searchParams }: PageProps) {
       ? resolvedSearchParams.date
       : undefined;
 
+  const airlineFilter =
+    typeof resolvedSearchParams.airline === "string"
+      ? resolvedSearchParams.airline
+      : undefined;
+  const companyTypeFilter =
+    typeof resolvedSearchParams.companyType === "string"
+      ? resolvedSearchParams.companyType
+      : undefined;
+  const nationalFilter =
+    typeof resolvedSearchParams.national === "string"
+      ? resolvedSearchParams.national
+      : undefined;
+  const internationalFilter =
+    typeof resolvedSearchParams.international === "string"
+      ? resolvedSearchParams.international
+      : undefined;
+
   const currentCaracasDate = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Caracas",
   }).format(new Date());
   const effectiveTargetDate = dateFilter || currentCaracasDate;
 
-  const [flights, airports, minDate, performanceData, kpiStats] =
+  const [flights, airports, airlines, minDate, performanceData, kpiStats] =
     await Promise.all([
-      getRecentFlights(originFilter, dateFilter),
+      getRecentFlights(
+        originFilter,
+        dateFilter,
+        airlineFilter,
+        companyTypeFilter,
+        nationalFilter,
+        internationalFilter,
+      ),
       getAirports(),
+      getAirlines(),
       getMinDate(),
-      getAirlinePerformance(effectiveTargetDate),
-      getDailyKpis(effectiveTargetDate, originFilter),
+      getAirlinePerformance(
+        effectiveTargetDate,
+        originFilter,
+        airlineFilter,
+        companyTypeFilter,
+        nationalFilter,
+        internationalFilter,
+      ),
+      getDailyKpis(
+        effectiveTargetDate,
+        originFilter,
+        airlineFilter,
+        companyTypeFilter,
+        nationalFilter,
+        internationalFilter,
+      ),
     ]);
 
   const {
@@ -215,7 +342,7 @@ export default async function Home({ params, searchParams }: PageProps) {
     <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display">
       <Header />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar airports={airports} minDate={minDate} />
+        <Sidebar airports={airports} airlines={airlines} minDate={minDate} />
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <KPISection
             totalFlights={totalFlights}

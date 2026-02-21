@@ -3,6 +3,7 @@
 import { FlightRecord } from "@/types/flight";
 import { useTranslations } from "next-intl";
 import { Icon } from "./atoms/Icon";
+import { Tooltip } from "./atoms/Tooltip";
 
 interface FleetActivityProps {
   flights: FlightRecord[];
@@ -55,15 +56,18 @@ export function FleetActivity({ flights }: FleetActivityProps) {
                   statusText = t("delayed");
                 }
 
-                const title = `${flight.flight_num}: ${statusText}`;
+                const tooltipContent = `${flight.flight_num}: ${statusText}`;
 
                 return (
-                  <Icon
+                  <Tooltip
                     key={flight.id || flight.flight_num}
-                    name="flight"
-                    className={`${colorClass} text-lg cursor-help hover:scale-110 transition-transform`}
-                    title={title}
-                  />
+                    content={tooltipContent}
+                  >
+                    <Icon
+                      name="flight"
+                      className={`${colorClass} text-lg cursor-help hover:scale-110 transition-transform`}
+                    />
+                  </Tooltip>
                 );
               })}
             </div>

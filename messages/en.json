@@ -16,7 +16,7 @@
         "statusIncident": "Incident",
         "statusDiverted": "Diverted",
         "statusUnknown": "Unknown",
-        "localTime": "Local Time",
+        "localTime": "Local Time (CCS)",
         "aboutLink": "About this project"
     },
     "Leaderboard": {
@@ -34,7 +34,10 @@
     },
     "Share": {
         "text": "Check out the VueloTransparente Flight Tracker! 🇻🇪✈️ Real-time data on airline delays and cancellations.",
-        "button": "Share"
+        "button": "Share",
+        "twitter": "Twitter / X",
+        "whatsapp": "WhatsApp",
+        "copySuccess": "Link copied to clipboard!"
     },
     "Filter": {
         "allAirlines": "All Airlines",
@@ -91,10 +94,21 @@
         "onTime": "On Time",
         "delayed": "Delayed",
         "cancelled": "Cancelled",
-        "clearFilters": "Clear Filters",
         "aboutLink": "About this project",
         "today": "Today",
         "total": "Total",
-        "systemClosedToolTip": "Auto-closed by system"
+        "filters": "Filters",
+        "systemClosedToolTip": "Auto-closed by system",
+        "allAirlines": "All Airlines",
+        "flightType": "Flight Type",
+        "domestic": "Domestic (National)",
+        "international": "International",
+        "companyType": "Company Type",
+        "allCompanyTypes": "All (Commercial + Cargo)",
+        "commercial": "Commercial Only",
+        "cargo": "Cargo / Private Only",
+        "originAirport": "Origin Airport",
+        "cargoDeliveryTooltip": "Cargo / Delivery Flight",
+        "info": "Info"
     }
 }

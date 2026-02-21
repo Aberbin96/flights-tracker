@@ -16,7 +16,7 @@
         "statusIncident": "Incidente",
         "statusDiverted": "Desviado",
         "statusUnknown": "Desconocido",
-        "localTime": "Hora Local",
+        "localTime": "Hora Local (CCS)",
         "aboutLink": "Sobre este proyecto"
     },
     "Leaderboard": {
@@ -34,7 +34,10 @@
     },
     "Share": {
         "text": "¡Mira el Rastreador de Vuelos VueloTransparente! 🇻🇪✈️ Datos en tiempo real sobre retrasos y cancelaciones.",
-        "button": "Compartir"
+        "button": "Compartir",
+        "twitter": "Twitter / X",
+        "whatsapp": "WhatsApp",
+        "copySuccess": "¡Enlace copiado al portapapeles!"
     },
     "Filter": {
         "allAirlines": "Todas las Aerolíneas",
@@ -91,10 +94,21 @@
         "onTime": "En Horario",
         "delayed": "Demorado",
         "cancelled": "Cancelado",
-        "clearFilters": "Limpiar Filtros",
         "aboutLink": "Sobre este proyecto",
         "today": "Hoy",
         "total": "Total",
-        "systemClosedToolTip": "Cerrado automáticamente por el sistema"
+        "filters": "Filtros",
+        "systemClosedToolTip": "Cerrado automáticamente por el sistema",
+        "allAirlines": "Todas las Aerolíneas",
+        "flightType": "Tipo de Vuelo",
+        "domestic": "Nacional",
+        "international": "Internacional",
+        "companyType": "Tipo de Compañía",
+        "allCompanyTypes": "Todo (Comercial + Carga)",
+        "commercial": "Comercial Solamente",
+        "cargo": "Carga / Privado Solamente",
+        "originAirport": "Aeropuerto de Origen",
+        "cargoDeliveryTooltip": "Vuelo de Carga / Entrega",
+        "info": "Info"
     }
 }
