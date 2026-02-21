@@ -91,6 +91,9 @@
         "onTime": "En Horario",
         "delayed": "Demorado",
         "cancelled": "Cancelado",
-        "aboutLink": "Sobre este proyecto"
+        "aboutLink": "Sobre este proyecto",
+        "today": "Hoy",
+        "total": "Total",
+        "systemClosedToolTip": "Cerrado automáticamente por el sistema"
     }
 }

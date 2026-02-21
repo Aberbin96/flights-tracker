@@ -2,6 +2,7 @@
 
 import { FlightRecord } from "@/types/flight";
 import { useTranslations } from "next-intl";
+import { Icon } from "./atoms/Icon";
 
 interface FleetActivityProps {
   flights: FlightRecord[];
@@ -57,13 +58,12 @@ export function FleetActivity({ flights }: FleetActivityProps) {
                 const title = `${flight.flight_num}: ${statusText}`;
 
                 return (
-                  <span
+                  <Icon
                     key={flight.id || flight.flight_num}
-                    className={`material-symbols-outlined ${colorClass} text-lg cursor-help hover:scale-110 transition-transform`}
+                    name="flight"
+                    className={`${colorClass} text-lg cursor-help hover:scale-110 transition-transform`}
                     title={title}
-                  >
-                    flight
-                  </span>
+                  />
                 );
               })}
             </div>

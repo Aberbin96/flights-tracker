@@ -40,20 +40,18 @@ async function getMinDate() {
 
 // Updated fetch function with filters
 async function getRecentFlights(origin?: string, date?: string) {
-  const targetDate =
-    date ||
-    new Intl.DateTimeFormat("en-CA", { timeZone: "America/Caracas" }).format(
-      new Date(),
-    );
-
   let query = supabase
     .from("flights_history")
     .select("*")
-    .eq("flight_date", targetDate)
-    .order("captured_at", { ascending: false });
+    .order("captured_at", { ascending: false })
+    .limit(3000);
 
   if (origin) {
     query = query.eq("origin", origin);
+  }
+
+  if (date) {
+    query = query.eq("flight_date", date);
   }
 
   const { data, error } = await query;
@@ -65,36 +63,97 @@ async function getRecentFlights(origin?: string, date?: string) {
   return data as FlightRecord[];
 }
 
-// Calculate Airline Performance based on the displayed flights
-function calculateAirlinePerformance(flights: FlightRecord[]): AirlineStats[] {
-  const airlineMap = new Map<string, { total: number; onTime: number }>();
-  flights.forEach((f) => {
-    if (!airlineMap.has(f.airline)) {
-      airlineMap.set(f.airline, { total: 0, onTime: 0 });
-    }
-    const stats = airlineMap.get(f.airline)!;
-    const isCancelled = String(f.status).toLowerCase() === "cancelled";
-    const isDelayed = f.delay_minutes > 15;
+// Fetch pre-aggregated global KPIs for the target date from the view
+async function getDailyKpis(date: string) {
+  const { data, error } = await supabase
+    .from("daily_metrics_view")
+    .select("*")
+    .eq("flight_date", date);
 
-    stats.total++;
-    if (!isCancelled && !isDelayed) {
-      stats.onTime++;
+  if (error) {
+    console.error("Error fetching KPIs from view:", error);
+    return { totalFlights: 0, punctuality: 0, delays: 0, cancellations: 0 };
+  }
+
+  const totalFlights = data.reduce(
+    (sum, row) => sum + Number(row.total_flights || 0),
+    0,
+  );
+  const delays = data.reduce(
+    (sum, row) => sum + Number(row.delayed_flights || 0),
+    0,
+  );
+  const cancellations = data.reduce(
+    (sum, row) => sum + Number(row.cancelled_flights || 0),
+    0,
+  );
+  const onTimeCount = data.reduce(
+    (sum, row) => sum + Number(row.on_time_flights || 0),
+    0,
+  );
+  const punctuality = totalFlights > 0 ? (onTimeCount / totalFlights) * 100 : 0;
+
+  return { totalFlights, punctuality, delays, cancellations };
+}
+
+// Fetch pre-aggregated Airline Performance from the view
+async function getAirlinePerformance(
+  targetDate: string,
+): Promise<AirlineStats[]> {
+  const { data, error } = await supabase
+    .from("airline_daily_performance_view")
+    .select("*");
+
+  if (error) {
+    console.error("Error fetching airline performance from view:", error);
+    return [];
+  }
+
+  const airlineMap = new Map<
+    string,
+    {
+      totalFlights: number;
+      totalOnTime: number;
+      todayFlights: number;
+      todayOnTime: number;
+    }
+  >();
+
+  data.forEach((row) => {
+    if (!airlineMap.has(row.airline)) {
+      airlineMap.set(row.airline, {
+        totalFlights: 0,
+        totalOnTime: 0,
+        todayFlights: 0,
+        todayOnTime: 0,
+      });
+    }
+    const stats = airlineMap.get(row.airline)!;
+
+    stats.totalFlights += Number(row.total_flights || 0);
+    stats.totalOnTime += Number(row.on_time_flights || 0);
+
+    if (row.flight_date === targetDate) {
+      stats.todayFlights += Number(row.total_flights || 0);
+      stats.todayOnTime += Number(row.on_time_flights || 0);
     }
   });
 
   const performance: AirlineStats[] = [];
   airlineMap.forEach((stats, airline) => {
-    if (stats.total > 0) {
+    if (stats.totalFlights > 0) {
       performance.push({
         airline,
-        on_time_percentage: (stats.onTime / stats.total) * 100,
+        total_percentage: (stats.totalOnTime / stats.totalFlights) * 100,
+        today_percentage:
+          stats.todayFlights > 0
+            ? (stats.todayOnTime / stats.todayFlights) * 100
+            : 0,
       });
     }
   });
 
-  return performance.sort(
-    (a, b) => b.on_time_percentage - a.on_time_percentage,
-  );
+  return performance.sort((a, b) => b.total_percentage - a.total_percentage);
 }
 
 interface PageProps {
@@ -109,25 +168,40 @@ export default async function Home({ params, searchParams }: PageProps) {
   const originFilter =
     typeof resolvedSearchParams.origin === "string"
       ? resolvedSearchParams.origin
-      : undefined;
+      : "CCS";
   const dateFilter =
     typeof resolvedSearchParams.date === "string"
       ? resolvedSearchParams.date
       : undefined;
 
-  const flights = await getRecentFlights(originFilter, dateFilter);
-  const airports = await getAirports();
-  const minDate = await getMinDate();
-  const performanceData = calculateAirlinePerformance(flights);
+  const currentCaracasDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Caracas",
+  }).format(new Date());
+  const effectiveTargetDate = dateFilter || currentCaracasDate;
 
-  const totalFlights = flights.length;
-  const delayed = flights.filter((f) => f.delay_minutes > 15).length;
-  const cancelled = flights.filter(
-    (f) => String(f.status).toLowerCase() === "cancelled",
-  ).length;
+  const [flights, airports, minDate, performanceData, kpiStats] =
+    await Promise.all([
+      getRecentFlights(originFilter, dateFilter),
+      getAirports(),
+      getMinDate(),
+      getAirlinePerformance(effectiveTargetDate),
+      getDailyKpis(effectiveTargetDate),
+    ]);
 
-  const onTimeCount = totalFlights - delayed - cancelled;
-  const punctuality = totalFlights > 0 ? (onTimeCount / totalFlights) * 100 : 0;
+  const {
+    totalFlights,
+    punctuality,
+    delays,
+    cancelled: cancellations,
+  } = {
+    ...kpiStats,
+    cancelled: kpiStats.cancellations,
+  };
+
+  // Filter Fleet Activity strictly for "today" or the filtered date
+  const fleetActivityFlights = flights.filter(
+    (f) => f.flight_date === effectiveTargetDate,
+  );
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display">
@@ -135,20 +209,16 @@ export default async function Home({ params, searchParams }: PageProps) {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar airports={airports} minDate={minDate} />
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
-            <p className="text-zinc-500 dark:text-zinc-400"></p>
-          </div>
-
           <KPISection
             totalFlights={totalFlights}
             punctuality={punctuality}
-            delays={delayed}
-            cancellations={cancelled}
+            delays={delays}
+            cancellations={cancellations}
           />
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
             <AirlinePerformance data={performanceData} />
-            <FleetActivity flights={flights} />
+            <FleetActivity flights={fleetActivityFlights} />
           </div>
 
           <FlightTable flights={flights} />

@@ -61,3 +61,15 @@ These are tasks I can implement for you.
 - [ ] **Airport Board Scraping**: Compare API data against scraped data from Maiquetía Airport digital board.
 
 ### RAW
+
+- [x] Okay, remove the coffe thing at the moment,
+- [x] fill the default airport to CCS
+- [x] Total Flights, Punctuality, Delays, Cancellations this values should be a summary of all records of this day,
+- [x] Airline Performance should display the today performance, and total performance
+- [x] Fleet Activity is just for today flights
+- [x] Detailed Flight List should be the total flights in the table with a pagination
+- [x] Remove the text inside the icons, just show the icon
+- [x] Use atomic design to create the components
+- [x] Create new views on database more helpful for the project
+- [x] modify Airline Performance to have a short version, currently have a lot of waste space
+- [x] Create a github action to make the cron job, vercel isn't running the cron jobs for us

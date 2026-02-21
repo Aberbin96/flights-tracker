@@ -3,6 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
+import { Button } from "./atoms/Button";
+import { Icon } from "./atoms/Icon";
 
 interface SidebarProps {
   airports: string[];
@@ -27,25 +29,35 @@ export function Sidebar({ airports, minDate }: SidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const initialAirport = searchParams.get("origin") || "";
-  const initialDate = searchParams.get("date") || "";
+  const currentCaracasDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Caracas",
+  }).format(new Date());
+
+  const initialAirport = searchParams.has("origin")
+    ? searchParams.get("origin") || ""
+    : "CCS";
+  const initialDate = searchParams.has("date")
+    ? searchParams.get("date") || ""
+    : currentCaracasDate;
 
   const [selectedAirport, setSelectedAirport] = useState(initialAirport);
   const [selectedDate, setSelectedDate] = useState(initialDate);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedAirport(searchParams.get("origin") || "");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedDate(searchParams.get("date") || "");
+    setSelectedAirport(
+      searchParams.has("origin") ? searchParams.get("origin") || "" : "CCS",
+    );
+    setSelectedDate(
+      searchParams.has("date")
+        ? searchParams.get("date") || ""
+        : currentCaracasDate,
+    );
   }, [searchParams]);
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString());
-    if (selectedAirport) params.set("origin", selectedAirport);
-    else params.delete("origin");
-    if (selectedDate) params.set("date", selectedDate);
-    else params.delete("date");
+    params.set("origin", selectedAirport);
+    params.set("date", selectedDate);
     router.push(`?${params.toString()}`);
   };
 
@@ -71,16 +83,12 @@ export function Sidebar({ airports, minDate }: SidebarProps) {
                 onClick={() => handleAirportClick(code)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${selectedAirport === code ? "bg-primary/10 text-primary font-semibold" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800"}`}
               >
-                <span className="material-symbols-outlined text-lg">
-                  location_on
-                </span>
+                <Icon name="location_on" className="text-lg" />
                 <span className="text-sm font-medium">
                   {AIRPORT_NAMES[code] || code} ({code})
                 </span>
                 {selectedAirport === code && (
-                  <span className="ml-auto material-symbols-outlined text-sm">
-                    check_circle
-                  </span>
+                  <Icon name="check_circle" className="ml-auto text-sm" />
                 )}
               </div>
             ))}
@@ -95,9 +103,10 @@ export function Sidebar({ airports, minDate }: SidebarProps) {
           </h3>
           <div className="flex flex-col gap-3">
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">
-                calendar_today
-              </span>
+              <Icon
+                name="calendar_today"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg"
+              />
               <input
                 type="date"
                 min={minDate}
@@ -108,12 +117,24 @@ export function Sidebar({ airports, minDate }: SidebarProps) {
               />
             </div>
           </div>
-          <button
-            onClick={applyFilters}
-            className="mt-4 w-full bg-primary text-white rounded-lg py-2.5 text-sm font-bold shadow-md shadow-primary/30 hover:bg-primary-dark transition-all cursor-pointer"
-          >
-            {t("applyFilters")}
-          </button>
+          <div className="flex flex-col gap-2 mt-4">
+            <Button onClick={applyFilters} variant="primary" fullWidth>
+              {t("applyFilters")}
+            </Button>
+            {(selectedAirport || selectedDate) && (
+              <Button
+                onClick={() => {
+                  setSelectedAirport("");
+                  setSelectedDate("");
+                  router.push("/?origin=&date=");
+                }}
+                variant="secondary"
+                fullWidth
+              >
+                {t("clearFilters")}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </aside>

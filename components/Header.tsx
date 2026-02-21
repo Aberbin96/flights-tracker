@@ -6,6 +6,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { useTransition, useState, useEffect } from "react";
 import { LocalClock } from "./LocalClock";
 import { useTheme } from "next-themes";
+import { Button } from "./atoms/Button";
+import { Icon } from "./atoms/Icon";
 
 export function Header() {
   const t = useTranslations("Dashboard");
@@ -57,7 +59,7 @@ export function Header() {
     <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200/60 dark:border-slate-800 bg-white/80 backdrop-blur-md dark:bg-slate-900 px-6 py-3 sticky top-0 z-50">
       <div className="flex items-center gap-4 text-primary dark:text-slate-100">
         <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-sm shadow-primary/20">
-          <span className="material-symbols-outlined">flight_takeoff</span>
+          <Icon name="flight_takeoff" />
         </div>
         <h2 className="text-slate-800 dark:text-white text-lg font-bold leading-tight tracking-tight">
           {t("title")} 🇻🇪
@@ -69,41 +71,25 @@ export function Header() {
           <a
             href={`/${locale}/about`}
             className="flex px-3 cursor-pointer items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/50 dark:border-transparent transition-all shadow-sm"
-            title={t("theme")}
+            title={t("aboutLink", { fallback: "About this project" })}
           >
-            {t("aboutLink", { fallback: "About this project" })}
+            <Icon name="info" className="text-xl" />
           </a>
-          <button
-            onClick={toggleTheme}
-            className="flex size-10 cursor-pointer items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/50 dark:border-transparent transition-all shadow-sm"
-            title={t("theme")}
-          >
-            <span className="material-symbols-outlined text-xl">
-              {mounted && resolvedTheme === "dark" ? "light_mode" : "dark_mode"}
-            </span>
-          </button>
-          <button
-            onClick={toggleLanguage}
-            className="flex px-3 h-10 cursor-pointer items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/50 dark:border-transparent transition-all shadow-sm gap-2"
-            title={t("language")}
-          >
-            <span className="material-symbols-outlined text-xl">language</span>
-            <span className="text-xs font-bold uppercase">{locale}</span>
-          </button>
-          <button
-            onClick={handleShare}
-            className="flex size-10 cursor-pointer items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/50 dark:border-transparent transition-all shadow-sm"
-            title={t("share")}
-          >
-            <span className="material-symbols-outlined text-xl">share</span>
-          </button>
-          <button
-            className="flex px-4 h-10 cursor-pointer items-center justify-center rounded-lg bg-[#FFDD00] text-black hover:bg-[#FFCC00] transition-colors gap-2 font-bold text-sm shadow-sm"
-            title={t("coffee")}
-          >
-            <span className="material-symbols-outlined text-xl">coffee</span>
-            <span className="hidden sm:inline">{t("coffee")}</span>
-          </button>
+          <Button onClick={toggleTheme} variant="icon" title={t("theme")}>
+            <Icon
+              name={
+                mounted && resolvedTheme === "dark" ? "light_mode" : "dark_mode"
+              }
+              className="text-xl"
+            />
+          </Button>
+          <Button onClick={toggleLanguage} variant="icon" title={t("language")}>
+            <Icon name="language" className="text-xl" />
+            <span className="text-xs font-bold uppercase ml-2">{locale}</span>
+          </Button>
+          <Button onClick={handleShare} variant="icon" title={t("share")}>
+            <Icon name="share" className="text-xl" />
+          </Button>
         </div>
       </div>
     </header>

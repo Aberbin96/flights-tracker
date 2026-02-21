@@ -91,6 +91,9 @@
         "onTime": "On Time",
         "delayed": "Delayed",
         "cancelled": "Cancelled",
-        "aboutLink": "About this project"
+        "aboutLink": "About this project",
+        "today": "Today",
+        "total": "Total",
+        "systemClosedToolTip": "Auto-closed by system"
     }
 }

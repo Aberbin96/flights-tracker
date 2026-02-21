@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Icon } from "./atoms/Icon";
 
 interface KPISectionProps {
   totalFlights: number;
@@ -25,9 +26,10 @@ export function KPISection({
           <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
             {t("totalFlights")}
           </span>
-          <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-xl">
-            flight
-          </span>
+          <Icon
+            name="flight"
+            className="text-primary bg-primary/10 p-2 rounded-xl"
+          />
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold tracking-tight text-slate-800 dark:text-white">
@@ -42,9 +44,10 @@ export function KPISection({
           <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
             {t("punctuality")}
           </span>
-          <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 p-2 rounded-xl">
-            timer
-          </span>
+          <Icon
+            name="timer"
+            className="text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 p-2 rounded-xl"
+          />
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold tracking-tight text-slate-800 dark:text-white">
@@ -59,9 +62,10 @@ export function KPISection({
           <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
             {t("delays")}
           </span>
-          <span className="material-symbols-outlined text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-500/10 p-2 rounded-xl">
-            schedule
-          </span>
+          <Icon
+            name="schedule"
+            className="text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-500/10 p-2 rounded-xl"
+          />
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold tracking-tight text-slate-800 dark:text-white">
@@ -76,9 +80,10 @@ export function KPISection({
           <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
             {t("cancellations")}
           </span>
-          <span className="material-symbols-outlined text-rose-600 dark:text-rose-500 bg-rose-50 dark:bg-rose-500/10 p-2 rounded-xl">
-            cancel
-          </span>
+          <Icon
+            name="cancel"
+            className="text-rose-600 dark:text-rose-500 bg-rose-50 dark:bg-rose-500/10 p-2 rounded-xl"
+          />
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold tracking-tight text-slate-800 dark:text-white">

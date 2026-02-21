@@ -3,6 +3,9 @@
 import { FlightRecord } from "@/types/flight";
 import { useTranslations } from "next-intl";
 import { useState, useMemo } from "react";
+import { Icon } from "./atoms/Icon";
+import { Badge, BadgeVariant } from "./atoms/Badge";
+import { Button } from "./atoms/Button";
 
 interface FlightTableProps {
   flights: FlightRecord[];
@@ -73,9 +76,10 @@ export function FlightTable({ flights }: FlightTableProps) {
           {t("detailedList")}
         </h3>
         <div className="relative w-full sm:w-64 flex-shrink-0">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">
-            search
-          </span>
+          <Icon
+            name="search"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg"
+          />
           <input
             className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-none shadow-sm rounded-lg text-sm focus:ring-2 focus:ring-primary/20 text-slate-700 dark:text-slate-100 transition-all outline-none"
             placeholder={t("searchPlaceholder")}
@@ -111,27 +115,15 @@ export function FlightTable({ flights }: FlightTableProps) {
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {paginatedFlights.map((flight, index) => {
-              let statusConfig = {
-                text: t("onTime"),
-                color:
-                  "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-                dot: "bg-emerald-500",
-              };
+              let badgeVariant: BadgeVariant = "success";
+              let statusText = t("onTime");
 
               if (String(flight.status).toLowerCase() === "cancelled") {
-                statusConfig = {
-                  text: t("cancelled"),
-                  color:
-                    "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
-                  dot: "bg-rose-500",
-                };
+                badgeVariant = "error";
+                statusText = t("cancelled");
               } else if (flight.delay_minutes > 15) {
-                statusConfig = {
-                  text: t("delayed"),
-                  color:
-                    "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-                  dot: "bg-amber-500",
-                };
+                badgeVariant = "warning";
+                statusText = t("delayed");
               }
 
               const scheduledTime = formatTime(flight.departure_scheduled);
@@ -154,15 +146,18 @@ export function FlightTable({ flights }: FlightTableProps) {
                   <td className="px-5 py-4 text-sm text-slate-500 dark:text-slate-400">
                     {flight.origin}
                   </td>
-                  <td className="px-5 py-4">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold ${statusConfig.color}`}
-                    >
+                  <td className="px-5 py-4 flex items-center gap-1.5">
+                    {flight.is_system_closed && (
                       <span
-                        className={`size-1.5 rounded-full ${statusConfig.dot}`}
-                      ></span>{" "}
-                      {statusConfig.text}
-                    </span>
+                        title={
+                          t("systemClosedToolTip") || "Auto-closed by system"
+                        }
+                        className="text-slate-400 bg-slate-100 dark:bg-slate-800 rounded px-1 flex items-center cursor-help"
+                      >
+                        <Icon name="smart_toy" className="text-[14px]" />
+                      </span>
+                    )}
+                    <Badge variant={badgeVariant} text={statusText} />
                   </td>
                   <td className="px-5 py-4 text-sm text-slate-500 dark:text-slate-400 font-mono">
                     {scheduledTime}{" "}
@@ -193,9 +188,7 @@ export function FlightTable({ flights }: FlightTableProps) {
                   className="px-5 py-12 text-center text-slate-400 text-sm"
                 >
                   <div className="flex flex-col items-center gap-2">
-                    <span className="material-symbols-outlined text-4xl opacity-50">
-                      search_off
-                    </span>
+                    <Icon name="search_off" className="text-4xl opacity-50" />
                     {t("noFlights")}
                   </div>
                 </td>
@@ -209,28 +202,26 @@ export function FlightTable({ flights }: FlightTableProps) {
           {t("showing", { count: filteredFlights.length })}
         </span>
         <div className="flex gap-2">
-          <button
+          <Button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="size-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 text-slate-600 dark:text-slate-400 transition-colors shadow-sm"
+            variant="secondary"
+            className="size-8 p-0" // Override padding for exact square if needed since it has generic padding
           >
-            <span className="material-symbols-outlined text-sm">
-              chevron_left
-            </span>
-          </button>
-          <button className="px-3 min-w-[32px] rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center bg-slate-50 dark:bg-slate-700 font-bold text-xs text-slate-700 dark:text-white shadow-sm">
+            <Icon name="chevron_left" className="text-sm" />
+          </Button>
+          <div className="px-3 min-w-[32px] rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center bg-slate-50 dark:bg-slate-700 font-bold text-xs text-slate-700 dark:text-white shadow-sm">
             {currentPage} <span className="text-slate-400 mx-1">/</span>{" "}
             {totalPages}
-          </button>
-          <button
+          </div>
+          <Button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="size-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 text-slate-600 dark:text-slate-400 transition-colors shadow-sm"
+            variant="secondary"
+            className="size-8 p-0"
           >
-            <span className="material-symbols-outlined text-sm">
-              chevron_right
-            </span>
-          </button>
+            <Icon name="chevron_right" className="text-sm" />
+          </Button>
         </div>
       </div>
     </div>

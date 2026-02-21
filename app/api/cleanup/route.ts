@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/utils/supabase/admin";
-import { OpenSkyClient } from "@/utils/opensky/client";
 import * as Sentry from "@sentry/nextjs";
 
 export const dynamic = "force-dynamic";
@@ -8,104 +7,65 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   // 1. Security Check
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (
+    authHeader !== `Bearer ${process.env.CRON_SECRET}` &&
+    process.env.NODE_ENV !== "development"
+  ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    // 2. Define "Stale" Threshold (e.g., 4 hours past estimated arrival)
-    // We want to find flights that are 'active' but should have landed long ago.
-    // Postgres interval syntax: NOW() - INTERVAL '4 hours'
+    // 2. Intelligent Auto-Closure Heuristics
 
-    // 3. Update Stale Records
-    const { data, error } = await supabaseAdmin
+    // HEURISTIC A: Stuck Active Flights -> Transition to 'landed'
+    // If a flight is marked 'active' but its estimated arrival passed more than 3 hours ago,
+    // we firmly assume it landed successfully and the API just missed the final update.
+    const { data: landedData, error: landedError } = await supabaseAdmin
       .from("flights_history")
-      .update({ status: "unknown" })
+      .update({ status: "landed", is_system_closed: true })
       .eq("status", "active")
       .lt(
         "arrival_estimated",
-        new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      ) // 4 hours ago
+        new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+      )
       .select();
 
-    if (error) {
-      console.error("Cleanup Error (Stale):", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (landedError) {
+      console.error("Cleanup Error (Landed Heuristic):", landedError);
+      return NextResponse.json({ error: landedError.message }, { status: 500 });
     }
 
-    // 4. Update No-Show Records (Scheduled but never departed)
-    // Threshold: 6 hours past scheduled departure
-    const { data: noShowData, error: noShowError } = await supabaseAdmin
+    // HEURISTIC B: Stuck Scheduled Flights -> Transition to 'cancelled'
+    // If a flight is 'scheduled' but its departure time passed more than 6 hours ago
+    // without ever turning 'active', we assume it was cancelled.
+    const { data: cancelledData, error: cancelledError } = await supabaseAdmin
       .from("flights_history")
-      .update({ status: "unknown" })
+      .update({ status: "cancelled", is_system_closed: true })
       .eq("status", "scheduled")
       .lt(
         "departure_scheduled",
         new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      ) // 6 hours ago
+      )
       .select();
 
-    if (noShowError) {
-      console.error("Cleanup Error (No-Show):", noShowError);
-      return NextResponse.json({ error: noShowError.message }, { status: 500 });
-    }
-
-    // 5. Ghost Flight Heuristics (Active but not in ADS-B)
-    // Constraint: Flight must be active AND departed > 45 mins ago
-    // This avoids flagging flights that are just taking off or have poor coverage near ground
-    const fortyFiveMinsAgo = new Date(
-      Date.now() - 45 * 60 * 1000,
-    ).toISOString();
-
-    const { data: activeFlights, error: activeError } = await supabaseAdmin
-      .from("flights_history")
-      .select("*")
-      .eq("status", "active")
-      .lt("departure_scheduled", fortyFiveMinsAgo);
-
-    let ghostCount = 0;
-    const ghostRecords: string[] = [];
-
-    if (activeFlights && activeFlights.length > 0) {
-      console.log(
-        `Checking ${activeFlights.length} potential ghost flights...`,
+    if (cancelledError) {
+      console.error("Cleanup Error (Cancelled Heuristic):", cancelledError);
+      return NextResponse.json(
+        { error: cancelledError.message },
+        { status: 500 },
       );
-      try {
-        const openSkyFlights = await OpenSkyClient.getFlightsInVenezuela();
-
-        for (const flight of activeFlights) {
-          const isVerified = await OpenSkyClient.verifyFlightActive(
-            flight.flight_num,
-            openSkyFlights,
-          );
-
-          if (!isVerified) {
-            // Mark as unknown/ghost
-            console.log(
-              `👻 Ghost detected: ${flight.flight_num}. Marking as unknown.`,
-            );
-            await supabaseAdmin
-              .from("flights_history")
-              .update({ status: "unknown" })
-              .eq("id", flight.id); // Assuming id is PK
-
-            ghostCount++;
-            ghostRecords.push(flight.flight_num);
-          }
-        }
-      } catch (err) {
-        console.error("OpenSky Cleanup Check Failed:", err);
-      }
     }
+
+    console.log(
+      `Cleanup Engine: Auto-closed ${landedData.length} landed flights and ${cancelledData.length} cancelled flights.`,
+    );
 
     return NextResponse.json({
       message: "Cleanup successful",
-      stale_count: data.length,
-      stale_records: data.map((f) => f.flight_num),
-      no_show_count: noShowData.length,
-      no_show_records: noShowData.map((f) => f.flight_num),
-      ghost_count: ghostCount,
-      ghost_records: ghostRecords,
+      auto_landed_count: landedData.length,
+      auto_landed_records: landedData.map((f) => f.flight_num),
+      auto_cancelled_count: cancelledData.length,
+      auto_cancelled_records: cancelledData.map((f) => f.flight_num),
     });
   } catch (error: any) {
     console.error("Cleanup Unexpected Error:", error);
