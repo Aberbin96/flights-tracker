@@ -91,6 +91,7 @@
         "onTime": "On Time",
         "delayed": "Delayed",
         "cancelled": "Cancelled",
+        "clearFilters": "Clear Filters",
         "aboutLink": "About this project",
         "today": "Today",
         "total": "Total",
