@@ -90,6 +90,7 @@
         "noFlights": "No flights found",
         "onTime": "On Time",
         "delayed": "Delayed",
-        "cancelled": "Cancelled"
+        "cancelled": "Cancelled",
+        "aboutLink": "About this project"
     }
 }

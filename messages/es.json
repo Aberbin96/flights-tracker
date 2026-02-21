@@ -90,6 +90,7 @@
         "noFlights": "No se encontraron vuelos",
         "onTime": "En Horario",
         "delayed": "Demorado",
-        "cancelled": "Cancelado"
+        "cancelled": "Cancelado",
+        "aboutLink": "Sobre este proyecto"
     }
 }
