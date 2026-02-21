@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/utils/supabase/admin";
 import { FlightStatus, FlightRecord } from "@/types/flight";
 import { OpenSkyClient } from "@/utils/opensky/client";
 import * as Sentry from "@sentry/nextjs";
+import { TRACKED_AIRPORTS } from "@/constants/flights";
 
 export const dynamic = "force-dynamic"; // Prevent caching of this route
 
@@ -24,10 +25,9 @@ export async function GET(request: Request) {
 
   try {
     // 2. Fetch Data from Aviationstack for Multiple Airports
-    const AIRPORTS = ["CCS", "MAR", "VLN", "PMV", "BLA"];
     let allFlights: any[] = [];
 
-    for (const airport of AIRPORTS) {
+    for (const airport of TRACKED_AIRPORTS) {
       try {
         const response = await axios.get(
           "http://api.aviationstack.com/v1/flights",
@@ -108,6 +108,10 @@ export async function GET(request: Request) {
         // Extract scheduled departure time
         const departureScheduled = flight.departure.scheduled || null;
 
+        // Extract arrival IATA
+        const arrivalIata =
+          flight.arrival.iata || flight.arrival.icao || "UNKNOWN";
+
         return {
           flight_num: flightNum,
           airline: airline,
@@ -119,13 +123,17 @@ export async function GET(request: Request) {
           arrival_estimated: arrivalEstimated,
           arrival_actual: arrivalActual,
           departure_scheduled: departureScheduled,
+          arrival_iata: arrivalIata,
+          is_system_closed: false,
         } as FlightRecord;
       })
       .filter((record: FlightRecord) => {
         // Filter out records that are completely broken/useless
         // We keep 'unknown' status but filter out if flight_num is truly unknown effectively invalidating the record
         const isValid =
-          record.flight_num !== "UNKNOWN" && record.origin !== "UNKNOWN";
+          record.flight_num !== "UNKNOWN" &&
+          record.origin !== "UNKNOWN" &&
+          record.arrival_iata !== "UNKNOWN";
         return isValid;
       });
 

@@ -16,7 +16,7 @@
         "statusIncident": "Incidente",
         "statusDiverted": "Desviado",
         "statusUnknown": "Desconocido",
-        "localTime": "Hora Local",
+        "localTime": "Hora Local (CCS)",
         "aboutLink": "Sobre este proyecto"
     },
     "Leaderboard": {
@@ -34,7 +34,10 @@
     },
     "Share": {
         "text": "¡Mira el Rastreador de Vuelos VueloTransparente! 🇻🇪✈️ Datos en tiempo real sobre retrasos y cancelaciones.",
-        "button": "Compartir"
+        "button": "Compartir",
+        "twitter": "Twitter / X",
+        "whatsapp": "WhatsApp",
+        "copySuccess": "¡Enlace copiado al portapapeles!"
     },
     "Filter": {
         "allAirlines": "Todas las Aerolíneas",
@@ -48,16 +51,13 @@
         "keywords": "venezuela, vuelos, rastreador, maiquetia, retrasos"
     },
     "About": {
-        "title": "Sobre VueloTransparente",
+        "title": "Sobre este Proyecto",
         "missionTitle": "Nuestra Misión",
-        "missionText": "VueloTransparente fue creado para proporcionar datos accesibles y en tiempo real sobre retrasos y cancelaciones de vuelos en Venezuela. Creemos que la transparencia es el primer paso para mejorar la calidad del servicio.",
+        "missionText": "Este proyecto se centra en la importancia fundamental de la transparencia y la rendición de cuentas en el sector aeronáutico. Al proporcionar datos accesibles y en tiempo real sobre retrasos y cancelaciones, buscamos empoderar a los ciudadanos y pasajeros con la información necesaria para exigir mejores estándares de servicio.",
         "methodologyTitle": "Metodología",
-        "methodologyText": "Utilizamos la API de Aviationstack para rastrear vuelos que salen de Maiquetía (CCS). Analizamos los horarios de salida programados vs. reales para calcular los retrasos de forma independiente.",
+        "methodologyText": "Utilizamos fuentes de datos oficiales para rastrear vuelos que salen de centros de alto tráfico como Maiquetía (CCS). Nos enfocamos en estos aeropuertos clave, ya que representan la mayoría del tráfico programado, lo que nos permite mantener una alta precisión en los datos y ofrecer la visión más representativa del desempeño de la aviación en el país.",
         "disclaimerTitle": "Aviso Legal",
         "disclaimerText": "Esta herramienta es solo para fines informativos. Los datos se proporcionan 'tal cual' y pueden no reflejar siempre los cambios de última hora de las aerolíneas.",
-        "supportTitle": "Apoya el Proyecto",
-        "supportText": "Si encuentras útil esta herramienta, considera apoyar su mantenimiento.",
-        "buyCoffee": "Cómprame un Café",
         "backHome": "Volver al Tablero"
     },
     "Dashboard": {
@@ -67,7 +67,7 @@
         "share": "Compartir",
         "coffee": "Café",
         "airports": "Aeropuertos",
-        "dateRange": "Rango de Fecha",
+        "date": "Fecha",
         "applyFilters": "Aplicar Filtros",
         "noAirports": "No se encontraron aeropuertos",
         "totalFlights": "Vuelos de Hoy",
@@ -91,10 +91,23 @@
         "onTime": "En Horario",
         "delayed": "Demorado",
         "cancelled": "Cancelado",
-        "clearFilters": "Limpiar Filtros",
         "aboutLink": "Sobre este proyecto",
         "today": "Hoy",
         "total": "Total",
-        "systemClosedToolTip": "Cerrado automáticamente por el sistema"
+        "filters": "Filtros",
+        "systemClosedToolTip": "Cerrado automáticamente por el sistema",
+        "allAirlines": "Todas las Aerolíneas",
+        "flightType": "Tipo de Vuelo",
+        "domestic": "Nacional",
+        "international": "Internacional",
+        "companyType": "Tipo de Compañía",
+        "allCompanyTypes": "Todo (Comercial + Carga)",
+        "commercial": "Comercial Solamente",
+        "cargo": "Carga / Privado Solamente",
+        "public": "Pública / Estatal",
+        "private": "Empresas Privadas",
+        "originAirport": "Aeropuerto de Origen",
+        "cargoDeliveryTooltip": "Vuelo de Carga / Entrega",
+        "info": "Info"
     }
 }

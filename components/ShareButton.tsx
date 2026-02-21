@@ -39,14 +39,14 @@ export function ShareButton() {
             className="flex items-center gap-3 w-full px-4 py-2 text-sm text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
           >
             <Twitter className="w-4 h-4 text-blue-400" />
-            <span>Twitter / X</span>
+            <span>{t("twitter")}</span>
           </button>
           <button
             onClick={() => handleShare("whatsapp")}
             className="flex items-center gap-3 w-full px-4 py-2 text-sm text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
           >
             <MessageCircle className="w-4 h-4 text-green-500" />
-            <span>WhatsApp</span>
+            <span>{t("whatsapp")}</span>
           </button>
         </div>
       )}

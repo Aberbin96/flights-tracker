@@ -8,17 +8,18 @@
 
 ### Backend Refinements (Sync & Data Quality)
 
-- [ ] **Manual Sync Command**: Create a script/CLI command to manually sync a specific date range (for backfilling).
+- [x] **Manual Sync Command**: Create a script/CLI command to manually sync a specific date range (for backfilling).
 
-- [ ] **Domestic vs International**: Add two switches to differentiate between national and international flights (both selected by default).
-- [ ] **Mobile Design**: Improve the overall mobile responsive design layout.
-- [ ] **Company Type Filters**: Create a switch to add private company flights (default to displaying only public/commercial flights).
-- [ ] **Airline Filter**: Create a select to choose a specific airline.
-- [ ] **Remove Apply Button**: Remove the apply filters button (as filters now apply instantly).
-- [ ] **Flight Types**: Differentiate between commercial flights and delivery/cargo companies.
-- [ ] **About Page Redesign**: Change the about page to match the current atomic design and background styles.
-- [ ] **Share Button Enhancements**: Improve the share button for social media (RRSS) implementations.
-- [ ] **OpenGraph Image**: Improve OpenGraph metadata by adding an actual preview image.
+- [x] **Domestic vs International**: Add two switches to differentiate between national and international flights (both selected by default).
+- [x] **Mobile Design**: Improve the overall mobile responsive design layout (Added Drawer).
+- [x] **Company Type Filters**: Create a switch to add private company flights (default to displaying only public/commercial flights).
+- [x] **Airline Filter**: Create a select to choose a specific airline.
+- [x] **Apply Button**: Remove the apply filters button.
+- [x] **Flight Types**: Differentiate between commercial flights and delivery/cargo companies.
+- [x] **About Page Redesign**: Change the about page to match the current atomic design and background styles.
+- [x] **Add date in the flights table**: Add a column to the flights table to show the date of the flight.
+- [x] **Share Button Enhancements**: Improve the share button for social media (RRSS) implementations.
+- [x] **OpenGraph Image**: Improve OpenGraph metadata by adding an actual preview image.
 - [ ] **Donation Widgets**: Add "Buy Me a Coffee" or similar link with call-to-action.
 
 ### Advanced Research / Future Features
