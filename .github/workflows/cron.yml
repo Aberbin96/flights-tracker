@@ -40,6 +40,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: Production
 
+    needs: run-sync
+
     # We only want to run the Cleanup job natively on the hourly schedule (or manually)
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '30 * * * *'
 
