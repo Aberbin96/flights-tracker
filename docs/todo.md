@@ -33,7 +33,7 @@ These are tasks I can implement for you.
 
 - [ ] **Manual Sync Command**: Create a script/CLI command to manually sync a specific date range (for backfilling).
 - [x] **Upsert Strategy**: Update synchronization logic to use a composite unique key (flight_iata + flight_date) to prevent duplicates.
-- [ ] **Error Logging**: Add better logging for failed syncs in Supabase + **Sentry integration**.
+- [x] **Error Logging**: Add better logging for failed syncs in Supabase + **Sentry integration**.
 - [x] **More Airports**: Configure script to sync more airports beyond CCS.
 - [x] **Hourly Polling**: Setup cron job for every 60 minutes to build historical data over time.
 
@@ -59,6 +59,7 @@ These are tasks I can implement for you.
 - [x] **Multi-Source Verification**: Integrate OpenSky Network or similar to cross-reference aircraft positions.
 - [x] **Ghost Flight Heuristics**: Analyze ground speed/GPS updates to detect stalled/cancelled flights marked as active.
 - [ ] **Airport Board Scraping**: Compare API data against scraped data from Maiquetía Airport digital board.
+- [x] **Auto-Closure Indicator**: Visual indicator (Bot icon) for flights closed by system cleanup logic.
 
 ### RAW
 
