@@ -10,6 +10,7 @@
 
 - [ ] **Manual Sync Command**: Create a script/CLI command to manually sync a specific date range (for backfilling).
 
+- [ ] **Domestic vs International**: Add two switches to differentiate between national and international flights (both selected by default).
 - [ ] **Mobile Design**: Improve the overall mobile responsive design layout.
 - [ ] **Company Type Filters**: Create a switch to add private company flights (default to displaying only public/commercial flights).
 - [ ] **Airline Filter**: Create a select to choose a specific airline.
