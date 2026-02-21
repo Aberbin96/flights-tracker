@@ -56,10 +56,6 @@ export async function GET(request: Request) {
       );
     }
 
-    console.log(
-      `Cleanup Engine: Auto-closed ${landedData.length} landed flights and ${cancelledData.length} cancelled flights.`,
-    );
-
     return NextResponse.json({
       message: "Cleanup successful",
       auto_landed_count: landedData.length,

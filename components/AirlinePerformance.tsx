@@ -6,6 +6,7 @@ export interface AirlineStats {
   airline: string;
   total_percentage: number;
   today_percentage: number;
+  today_flights: number;
 }
 
 interface AirlinePerformanceProps {
@@ -33,11 +34,16 @@ export function AirlinePerformance({ data }: AirlinePerformanceProps) {
           const totalPercentage = Math.round(airline.total_percentage);
 
           let todayColorClass =
-            "text-emerald-600 dark:text-emerald-400 font-bold";
-          if (todayPercentage < 60)
-            todayColorClass = "text-rose-600 dark:text-rose-400 font-bold";
-          else if (todayPercentage < 80)
-            todayColorClass = "text-amber-600 dark:text-amber-400 font-bold";
+            "text-slate-400 dark:text-slate-500 font-medium";
+
+          if (airline.today_flights > 0) {
+            todayColorClass =
+              "text-emerald-600 dark:text-emerald-400 font-bold";
+            if (todayPercentage < 60)
+              todayColorClass = "text-rose-600 dark:text-rose-400 font-bold";
+            else if (todayPercentage < 80)
+              todayColorClass = "text-amber-600 dark:text-amber-400 font-bold";
+          }
 
           let totalColorClass =
             "text-emerald-600/70 dark:text-emerald-400/70 font-semibold";
