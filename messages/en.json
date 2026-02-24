@@ -16,7 +16,6 @@
         "statusIncident": "Incident",
         "statusDiverted": "Diverted",
         "statusUnknown": "Unknown",
-        "unknown": "Unknown",
         "localTime": "Local Time (CCS)",
         "aboutLink": "About this project"
     },
@@ -92,6 +91,7 @@
         "onTime": "On Time",
         "delayed": "Delayed",
         "cancelled": "Cancelled",
+        "unknown": "Unknown",
         "aboutLink": "About this project",
         "today": "Today",
         "total": "Total",
