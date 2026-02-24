@@ -91,6 +91,7 @@
         "onTime": "On Time",
         "delayed": "Delayed",
         "cancelled": "Cancelled",
+        "unknown": "Unknown",
         "aboutLink": "About this project",
         "today": "Today",
         "total": "Total",

@@ -91,6 +91,7 @@
         "onTime": "En Horario",
         "delayed": "Demorado",
         "cancelled": "Cancelado",
+        "unknown": "Desconocido",
         "aboutLink": "Sobre este proyecto",
         "today": "Hoy",
         "total": "Total",

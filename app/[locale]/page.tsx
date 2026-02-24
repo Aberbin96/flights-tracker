@@ -418,7 +418,7 @@ export default async function Home({ params, searchParams }: PageProps) {
   const fleetActivityFlights = dayFlights;
 
   return (
-    <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display">
+    <div className="bg-background-light dark:bg-background-dark h-[100dvh] flex flex-col font-display">
       <Header />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar airports={airports} airlines={airlines} minDate={minDate} />
