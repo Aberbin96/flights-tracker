@@ -16,6 +16,7 @@
         "statusIncident": "Incident",
         "statusDiverted": "Diverted",
         "statusUnknown": "Unknown",
+        "unknown": "Unknown",
         "localTime": "Local Time (CCS)",
         "aboutLink": "About this project"
     },

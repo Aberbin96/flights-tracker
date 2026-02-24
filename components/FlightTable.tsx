@@ -1,6 +1,6 @@
 "use client";
 
-import { FlightRecord } from "@/types/flight";
+import { FlightRecord, FlightStatus } from "@/types/flight";
 import { useTranslations } from "next-intl";
 import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -147,9 +147,16 @@ export function FlightTable({
               let badgeVariant: BadgeVariant = "success";
               let statusText = t("onTime");
 
-              if (String(flight.status).toLowerCase() === "cancelled") {
+              if (
+                String(flight.status).toLowerCase() === FlightStatus.CANCELLED
+              ) {
                 badgeVariant = "error";
                 statusText = t("cancelled");
+              } else if (
+                String(flight.status).toLowerCase() === FlightStatus.UNKNOWN
+              ) {
+                badgeVariant = "neutral";
+                statusText = t("unknown");
               } else if (flight.delay_minutes > 15) {
                 badgeVariant = "warning";
                 statusText = t("delayed");
@@ -223,14 +230,20 @@ export function FlightTable({
                     </span>{" "}
                     <span
                       className={
-                        String(flight.status).toLowerCase() === "cancelled"
+                        String(flight.status).toLowerCase() ===
+                          FlightStatus.CANCELLED ||
+                        String(flight.status).toLowerCase() ===
+                          FlightStatus.UNKNOWN
                           ? "text-slate-400"
                           : flight.delay_minutes > 15
                             ? "text-amber-600 dark:text-amber-400 font-bold"
                             : "text-emerald-600 dark:text-emerald-400 font-bold"
                       }
                     >
-                      {String(flight.status).toLowerCase() === "cancelled"
+                      {String(flight.status).toLowerCase() ===
+                        FlightStatus.CANCELLED ||
+                      String(flight.status).toLowerCase() ===
+                        FlightStatus.UNKNOWN
                         ? "--:--"
                         : actualTime}
                     </span>

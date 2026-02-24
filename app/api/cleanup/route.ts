@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/utils/supabase/admin";
 import * as Sentry from "@sentry/nextjs";
+import { FlightStatus } from "@/types/flight";
 
 export const dynamic = "force-dynamic";
 
@@ -17,16 +18,16 @@ export async function GET(request: Request) {
   try {
     // 2. Intelligent Auto-Closure Heuristics
 
-    // HEURISTIC A: Stuck Active Flights -> Transition to 'landed'
-    // If a flight is marked 'active' but its estimated arrival passed more than 3 hours ago,
-    // we firmly assume it landed successfully and the API just missed the final update.
+    // HEURISTIC A: Stuck Active Flights -> Transition to 'unknown'
+    // If a flight is marked 'active' but its estimated arrival passed more than 4 hours ago,
+    // we assume we lost tracking of the flight.
     const { data: landedData, error: landedError } = await supabaseAdmin
       .from("flights_history")
-      .update({ status: "landed", is_system_closed: true })
+      .update({ status: FlightStatus.UNKNOWN, is_system_closed: true })
       .eq("status", "active")
       .lt(
         "arrival_estimated",
-        new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
       )
       .select();
 
@@ -35,12 +36,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: landedError.message }, { status: 500 });
     }
 
-    // HEURISTIC B: Stuck Scheduled Flights -> Transition to 'cancelled'
-    // If a flight is 'scheduled' but its departure time passed more than 6 hours ago
-    // without ever turning 'active', we assume it was cancelled.
+    // HEURISTIC B: Stuck Scheduled Flights -> Transition to 'unknown'
+    // If a flight is 'scheduled' but its departure time passed more than 12 hours ago
+    // without ever turning 'active', we assume we lost tracking of it.
     const { data: cancelledData, error: cancelledError } = await supabaseAdmin
       .from("flights_history")
-      .update({ status: "cancelled", is_system_closed: true })
+      .update({ status: FlightStatus.UNKNOWN, is_system_closed: true })
       .eq("status", "scheduled")
       .lt(
         "departure_scheduled",
@@ -58,10 +59,12 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       message: "Cleanup successful",
-      auto_landed_count: landedData.length,
-      auto_landed_records: landedData.map((f) => f.flight_num),
-      auto_cancelled_count: cancelledData.length,
-      auto_cancelled_records: cancelledData.map((f) => f.flight_num),
+      auto_unknown_from_active_count: landedData.length,
+      auto_unknown_from_active_records: landedData.map((f) => f.flight_num),
+      auto_unknown_from_scheduled_count: cancelledData.length,
+      auto_unknown_from_scheduled_records: cancelledData.map(
+        (f) => f.flight_num,
+      ),
     });
   } catch (error: any) {
     console.error("Cleanup Unexpected Error:", error);

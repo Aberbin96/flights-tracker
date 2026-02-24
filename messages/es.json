@@ -16,6 +16,7 @@
         "statusIncident": "Incidente",
         "statusDiverted": "Desviado",
         "statusUnknown": "Desconocido",
+        "unknown": "Desconocido",
         "localTime": "Hora Local (CCS)",
         "aboutLink": "Sobre este proyecto"
     },
