@@ -40,8 +40,8 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
     ? searchParams.get("airline") || ""
     : "";
   const initialCompanyType = searchParams.has("companyType")
-    ? searchParams.get("companyType") || "all"
-    : "all";
+    ? searchParams.get("companyType") || "public"
+    : "public";
 
   // Domestic vs International strings from URL
   const initialNational = searchParams.has("national")
@@ -72,8 +72,8 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
     );
     setCompanyType(
       searchParams.has("companyType")
-        ? searchParams.get("companyType") || "all"
-        : "all",
+        ? searchParams.get("companyType") || "public"
+        : "public",
     );
     setNational(
       searchParams.has("national")
@@ -109,7 +109,7 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
     if (currentParams.airline)
       params.set("airline", currentParams.airline as string);
     else params.delete("airline");
-    if (currentParams.companyType !== "all")
+    if (currentParams.companyType !== "public")
       params.set("companyType", currentParams.companyType as string);
     else params.delete("companyType");
 

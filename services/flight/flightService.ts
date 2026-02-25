@@ -134,4 +134,66 @@ export class FlightService {
       providersUsed,
     };
   }
+
+  /**
+   * Resolves flights that are stuck in 'active' or 'scheduled' status
+   * by checking if the aircraft (tail_number) has already started a new leg.
+   */
+  async resolveStuckFlights(): Promise<{ resolvedCount: number }> {
+    try {
+      // 1. Find flights that are potentially stuck
+      // Criteria: Not landed/cancelled/diverted, and older than 4 hours past departure
+      const fourHoursAgo = new Date(
+        Date.now() - 4 * 60 * 60 * 1000,
+      ).toISOString();
+
+      const { data: stuckFlights, error: fetchError } = await supabaseAdmin
+        .from("flights_history")
+        .select("*")
+        .not("status", "in", '("landed", "cancelled", "diverted")')
+        .lt("departure_scheduled", fourHoursAgo)
+        .not("tail_number", "is", null);
+
+      if (fetchError || !stuckFlights || stuckFlights.length === 0) {
+        return { resolvedCount: 0 };
+      }
+
+      let resolvedCount = 0;
+
+      for (const flight of stuckFlights) {
+        // 2. Check if this aircraft has a NEWER flight
+        // Criteria: same tail_number, departure > current, and origin == current.arrival
+        const { data: newerFlights, error: newerError } = await supabaseAdmin
+          .from("flights_history")
+          .select("id, origin")
+          .eq("tail_number", flight.tail_number)
+          .gt("departure_scheduled", flight.departure_scheduled)
+          .eq("origin", flight.arrival_iata) // Strict check: next flight must start where this one ended
+          .limit(1);
+
+        if (!newerError && newerFlights && newerFlights.length > 0) {
+          // 3. Mark as landed via system
+          console.log(
+            `[FlightService] Resolving stuck flight ${flight.flight_num} (${flight.flight_date}) for aircraft ${flight.tail_number}. Newer leg detected.`,
+          );
+
+          await supabaseAdmin
+            .from("flights_history")
+            .update({
+              status: "landed",
+              is_system_closed: true,
+            })
+            .eq("id", flight.id);
+
+          resolvedCount++;
+        }
+      }
+
+      return { resolvedCount };
+    } catch (error) {
+      console.error("[FlightService] resolveStuckFlights failed:", error);
+      Sentry.captureException(error);
+      return { resolvedCount: 0 };
+    }
+  }
 }

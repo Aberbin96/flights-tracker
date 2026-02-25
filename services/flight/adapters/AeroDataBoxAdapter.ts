@@ -41,15 +41,19 @@ export class AeroDataBoxAdapter implements IFlightProvider {
         },
       );
 
-      const departures = response.data.departures || [];
-      const arrivals = response.data.arrivals || [];
-      const allMovements = [...departures, ...arrivals];
+      const departures = (response.data.departures || []).map((f: any) => ({
+        ...f,
+        direction: "Departure",
+      }));
+      const arrivals = (response.data.arrivals || []).map((f: any) => ({
+        ...f,
+        direction: "Arrival",
+      }));
 
-      console.log(
-        `[AeroDataBoxAdapter] Fetched ${allMovements.length} movements for ${iata} using FIDS endpoint`,
-      );
+      const mappedDepartures = this.mapRecords(departures, iata, "Departure");
+      const mappedArrivals = this.mapRecords(arrivals, iata, "Arrival");
 
-      return this.mapRecords(allMovements, iata);
+      return [...mappedDepartures, ...mappedArrivals];
     } catch (error: any) {
       console.error(
         `[AeroDataBoxAdapter] Error fetching FIDS for ${iata}:`,
@@ -84,25 +88,34 @@ export class AeroDataBoxAdapter implements IFlightProvider {
     }
   }
 
-  private mapRecords(data: any[], defaultOrigin?: string): FlightRecord[] {
+  private mapRecords(
+    data: any[],
+    contextIata?: string,
+    directionHint?: "Departure" | "Arrival",
+  ): FlightRecord[] {
     return data
       .map((f: any) => {
         const flightNum = f.number || "UNKNOWN";
         const airline = f.airline?.name || "Unknown Airline";
-        const origin = f.departure?.airport?.iata || defaultOrigin || "UNKNOWN";
-        const arrivalIata = f.arrival?.airport?.iata || "UNKNOWN";
-        const status = this.mapStatus(f.status);
 
-        const departureScheduled =
-          f.movement?.scheduledTimeLocal ||
-          f.departure?.movement?.scheduledTimeLocal ||
-          null;
-        const departureActual =
-          f.movement?.actualTimeLocal ||
-          f.departure?.movement?.actualTimeLocal ||
-          null;
-        const arrivalEstimated =
-          f.arrival?.movement?.scheduledTimeLocal || null;
+        let origin = "UNKNOWN";
+        let arrivalIata = "UNKNOWN";
+        const departureScheduled = f.departure?.scheduledTime?.local || null;
+        const arrivalEstimated = f.arrival?.scheduledTime?.local || null;
+        const arrivalActual = f.arrival?.revisedTime?.local || null;
+        const status = this.mapStatus(f.status);
+        const departureActual = f.departure?.revisedTime?.local || null;
+
+        if (directionHint === "Departure") {
+          origin = contextIata || "UNKNOWN";
+          arrivalIata = f.arrival?.airport?.iata || "UNKNOWN";
+        } else if (directionHint === "Arrival") {
+          origin = f.departure?.airport?.iata || "UNKNOWN";
+          arrivalIata = contextIata || "UNKNOWN";
+        } else {
+          origin = f.departure?.airport?.iata || "UNKNOWN";
+          arrivalIata = f.arrival?.airport?.iata || "UNKNOWN";
+        }
 
         let delayMinutes = 0;
         if (departureScheduled && departureActual) {
@@ -121,15 +134,19 @@ export class AeroDataBoxAdapter implements IFlightProvider {
           flight_date: departureScheduled
             ? departureScheduled.split("T")[0]
             : new Date().toISOString().split("T")[0],
+          arrival_actual: arrivalActual,
           arrival_estimated: arrivalEstimated,
           arrival_iata: arrivalIata,
           departure_scheduled: departureScheduled,
           is_system_closed: false,
+          tail_number: f.aircraft?.reg || null,
         } as FlightRecord;
       })
       .filter(
         (record: FlightRecord) =>
-          record.flight_num !== "UNKNOWN" && record.arrival_iata !== "UNKNOWN",
+          record.flight_num !== "UNKNOWN" &&
+          record.origin !== "UNKNOWN" &&
+          record.arrival_iata !== "UNKNOWN",
       );
   }
 

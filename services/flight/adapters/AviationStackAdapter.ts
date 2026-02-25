@@ -115,6 +115,7 @@ export class AviationStackAdapter implements IFlightProvider {
           departure_scheduled: departureScheduled,
           arrival_iata: arrivalIata,
           is_system_closed: false,
+          tail_number: flight.aircraft?.registration || null,
         } as FlightRecord;
       })
       .filter(

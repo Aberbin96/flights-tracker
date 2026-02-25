@@ -22,8 +22,21 @@
 - [x] **OpenGraph Image**: Improve OpenGraph metadata by adding an actual preview image.
 - [ ] **Donation Widgets**: Add "Buy Me a Coffee" or similar link with call-to-action.
 
+### API & Sync Multi-source
+
+- [x] **AeroDataBox Integration**: Implement AeroDataBox as a high-quality data source (replaces AirLabs.co plan).
+- [x] **Multi-source Logic**: Refactor sync route to use `FlightService` with multiple adapters (AviationStack + AeroDataBox).
+
 ### Advanced Research / Future Features
 
+- [ ] Use OpenSky state vectors to check if final coordinates match destination vicinity.
+- [ ] **Final Status Resolution**:
+  - `Departure exists + Next flight detected` = **Landed**.
+  - `Departure exists + No arrival + No OpenSky signal` = **Unknown**.
+  - `Departure NULL + Next flight NULL` = **Cancelled**.
+- [ ] **Tail-Number Recovery Logic**: If `tail_number` is missing, use the `flight_iata` and `scheduled_departure` to query the OpenSky Network state vectors. Filter by aircraft category and airline callsign (ROI for Avior) to identify the specific `icao24` address.
+- [ ] **Hex-to-Registration Lookup**: Integrate the Hexdb.io API to convert ICAO24 hex codes into human-readable aircraft registrations (tail numbers).
+- [ ] **Aircraft Metadata Enrichment**: Create a local cache in Supabase that maps `flight_iata` codes to their most recently used `tail_numbers` to estimate the aircraft identity when real-time data is incomplete.
 - [ ] **Airport Board Scraping**: Compare API data against scraped data from Maiquetía Airport digital board.
 
 ---
@@ -70,6 +83,7 @@
 - [x] **Arrival Timestamp Logic**: Prioritize `arrival.actual` timestamp over status string for finalization.
 - [x] **Manual Delay Calculation**: Calculate `delay_minutes` from scheduled vs actual departure times instead of API field.
 - [x] **No-Show Validation**: Trigger status check if `actual_departure` is null and substantial time has passed.
+- [x] **Next-Leg Validation Logic**: Cross-reference stuck flights with the aircraft's next scheduled operation (via `tail_number`).
 
 ### Frontend Improvements
 
@@ -91,17 +105,3 @@
 - [x] **Multi-Source Verification**: Integrate OpenSky Network or similar to cross-reference aircraft positions.
 - [x] **Ghost Flight Heuristics**: Analyze ground speed/GPS updates to detect stalled/cancelled flights marked as active.
 - [x] **Auto-Closure Indicator**: Visual indicator (Bot icon) for flights closed by system cleanup logic.
-
-Implement "Next-Leg" Validation Logic: Create a function that cross-references stuck flights with the aircraft's next scheduled operation. If the aircraft (tail_number) is detected in a subsequent flight, the previous "Active" flight must be programmatically marked as Landed.
-
-OpenSky Network Integration: Develop a fallback verification task that queries the OpenSky Network API using the aircraft's icao24 or registration.
-
-Geofencing Verification: Use the last known state vector from OpenSky to check if the aircraft's final GPS coordinates match the destination airport's vicinity.
-
-Final Status Resolution:
-
-If actual_departure exists + Next flight detected = Set status to Landed.
-
-If actual_departure exists + No arrival data + No OpenSky signal = Set status to Unknown.
-
-If actual_departure is NULL + Next flight is also NULL = Set status to Cancelled.

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/utils/supabase/admin";
 import * as Sentry from "@sentry/nextjs";
 import { FlightStatus } from "@/types/flight";
+import { FlightService } from "@/services/flight/flightService";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,6 @@ export async function GET(request: Request) {
     // 2. Intelligent Auto-Closure Heuristics
 
     // HEURISTIC A: Stuck Active Flights -> Transition to 'unknown'
-    // If a flight is marked 'active' but its estimated arrival passed more than 4 hours ago,
-    // we assume we lost tracking of the flight.
     const { data: landedData, error: landedError } = await supabaseAdmin
       .from("flights_history")
       .update({ status: FlightStatus.UNKNOWN, is_system_closed: true })
@@ -37,8 +36,6 @@ export async function GET(request: Request) {
     }
 
     // HEURISTIC B: Stuck Scheduled Flights -> Transition to 'unknown'
-    // If a flight is 'scheduled' but its departure time passed more than 12 hours ago
-    // without ever turning 'active', we assume we lost tracking of it.
     const { data: cancelledData, error: cancelledError } = await supabaseAdmin
       .from("flights_history")
       .update({ status: FlightStatus.UNKNOWN, is_system_closed: true })
@@ -57,14 +54,17 @@ export async function GET(request: Request) {
       );
     }
 
+    // HEURISTIC C: Next-Leg Validation
+    // Resolves flights that are stuck in 'active' or 'scheduled' status
+    // by checking if the aircraft (tail_number) has already started a new leg.
+    const flightService = new FlightService([]);
+    const resolution = await flightService.resolveStuckFlights();
+
     return NextResponse.json({
       message: "Cleanup successful",
-      auto_unknown_from_active_count: landedData.length,
-      auto_unknown_from_active_records: landedData.map((f) => f.flight_num),
-      auto_unknown_from_scheduled_count: cancelledData.length,
-      auto_unknown_from_scheduled_records: cancelledData.map(
-        (f) => f.flight_num,
-      ),
+      auto_unknown_from_active_count: landedData?.length || 0,
+      auto_unknown_from_scheduled_count: cancelledData?.length || 0,
+      next_leg_resolved_count: resolution.resolvedCount,
     });
   } catch (error: any) {
     console.error("Cleanup Unexpected Error:", error);

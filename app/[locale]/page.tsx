@@ -333,7 +333,7 @@ export default async function Home({ params, searchParams }: PageProps) {
   const companyTypeFilter =
     typeof resolvedSearchParams.companyType === "string"
       ? resolvedSearchParams.companyType
-      : undefined;
+      : "public";
   const nationalFilter =
     typeof resolvedSearchParams.national === "string"
       ? resolvedSearchParams.national
