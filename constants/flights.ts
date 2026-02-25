@@ -36,4 +36,4 @@ export const AIRPORT_NAMES: Record<string, string> = {
   LSP: "Las Piedras",
 };
 
-export const TRACKED_AIRPORTS = ["CCS", "MAR", "VLN", "PMV", "BLA"];
+export const TRACKED_AIRPORTS = ["CCS", "MAR", "VLN", "PMV", "BRM", "PZO"];

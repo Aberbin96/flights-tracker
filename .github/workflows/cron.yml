@@ -3,11 +3,11 @@ name: Application Cron Jobs
 on:
   schedule:
     # -------------------------------------------------------------
-    # SCHEDULE 1: Flight Data Sync API (Aviationstack)
-    # Target: 8:00 AM, 3:00 PM, 9:00 PM UTC (3 times a day)
-    # Why: Stays cleanly under the 500 requests/month free tier limit.
+    # SCHEDULE 1: Flight Data Sync API (Multi-provider)
+    # Target: 0:00 AM, 8:00 AM, 4:00 PM UTC (3 times a day)
+    # Why: Stays under limits for AeroDataBox (600/mo) and AviationStack (500/mo) across 6 airports.
     # -------------------------------------------------------------
-    - cron: "0 8,15,21 * * *"
+    - cron: "0 0,8,16 * * *"
 
     # -------------------------------------------------------------
     # SCHEDULE 2: Database Cleanup Engine
@@ -25,15 +25,21 @@ jobs:
     runs-on: ubuntu-latest
     environment: Production
 
-    # We only want to run the Sync job natively on the 8,15,21 schedule (or manually)
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 8,15,21 * * *'
+    # We only want to run the Sync job natively on the 0,8,16 schedule (or manually)
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 0,8,16 * * *'
 
     steps:
-      - name: Hit /api/sync endpoint
+      - name: Hit /api/sync endpoint for each airport
         run: |
-          curl -X GET "${{ secrets.PROD_URL }}/api/sync" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            -f || exit 1
+          AIRPORTS=("CCS" "MAR" "VLN" "PMV" "BLA" "PZO")
+          for iata in "${AIRPORTS[@]}"; do
+            echo "Syncing $iata..."
+            curl -X GET "${{ secrets.PROD_URL }}/api/sync?airport=$iata" \
+              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+              -f || exit 1
+            echo "Waiting to avoid rate-limit..."
+            sleep 2
+          done
 
   run-cleanup:
     name: Run Database Cleanup Job

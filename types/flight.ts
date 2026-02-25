@@ -22,4 +22,5 @@ export interface FlightRecord {
   departure_scheduled?: string | null;
   arrival_iata: string;
   is_system_closed?: boolean;
+  tail_number?: string | null;
 }
