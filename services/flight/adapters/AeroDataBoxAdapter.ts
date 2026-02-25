@@ -153,14 +153,22 @@ export class AeroDataBoxAdapter implements IFlightProvider {
   private mapStatus(adbStatus: string): FlightStatus {
     switch (adbStatus?.toLowerCase()) {
       case "scheduled":
+      case "expected":
+      case "checkin":
+      case "boarding":
+      case "gateclosed":
+      case "delayed":
         return FlightStatus.SCHEDULED;
       case "active":
       case "enroute":
+      case "departed":
+      case "approaching":
         return FlightStatus.ACTIVE;
       case "landed":
       case "arrived":
         return FlightStatus.LANDED;
-      case "cancelled":
+      case "canceled":
+      case "canceleduncertain":
         return FlightStatus.CANCELLED;
       case "diverted":
         return FlightStatus.DIVERTED;
