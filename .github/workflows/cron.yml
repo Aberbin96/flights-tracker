@@ -16,6 +16,13 @@ on:
     # -------------------------------------------------------------
     - cron: "30 * * * *"
 
+    # -------------------------------------------------------------
+    # SCHEDULE 3: Aircraft Enrichment Engine (Hexdb)
+    # Target: Every hour at minute 45 (e.g., 8:45, 9:45, 10:45)
+    # Why: Resolves unknown registrations for flights with captured ICAO24.
+    # -------------------------------------------------------------
+    - cron: "45 * * * *"
+
   # Allow manual triggering from the GitHub Actions tab
   workflow_dispatch:
 
@@ -40,6 +47,21 @@ jobs:
             echo "Waiting to avoid rate-limit..."
             sleep 2
           done
+
+  run-enrichment:
+    name: Run Aircraft Enrichment Job
+    runs-on: ubuntu-latest
+    environment: Production
+
+    # We only want to run the Enrichment job natively on the hourly schedule (or manually)
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '45 * * * *'
+
+    steps:
+      - name: Hit /api/enrich-aircraft endpoint
+        run: |
+          curl -X GET "${{ secrets.PROD_URL }}/api/enrich-aircraft" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -f || exit 1
 
   run-cleanup:
     name: Run Database Cleanup Job

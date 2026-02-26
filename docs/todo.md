@@ -30,13 +30,13 @@
 ### Advanced Research / Future Features
 
 - [ ] Use OpenSky state vectors to check if final coordinates match destination vicinity.
-- [ ] **Final Status Resolution**:
+- [x] **Final Status Resolution**:
   - `Departure exists + Next flight detected` = **Landed**.
   - `Departure exists + No arrival + No OpenSky signal` = **Unknown**.
   - `Departure NULL + Next flight NULL` = **Cancelled**.
-- [ ] **Tail-Number Recovery Logic**: If `tail_number` is missing, use the `flight_iata` and `scheduled_departure` to query the OpenSky Network state vectors. Filter by aircraft category and airline callsign (ROI for Avior) to identify the specific `icao24` address.
-- [ ] **Hex-to-Registration Lookup**: Integrate the Hexdb.io API to convert ICAO24 hex codes into human-readable aircraft registrations (tail numbers).
-- [ ] **Aircraft Metadata Enrichment**: Create a local cache in Supabase that maps `flight_iata` codes to their most recently used `tail_numbers` to estimate the aircraft identity when real-time data is incomplete.
+- [x] **Tail-Number Recovery Logic**: If `tail_number` is missing, use the `flight_iata` and `scheduled_departure` to query the OpenSky Network state vectors. Filter by aircraft category and airline callsign (ROI for Avior) to identify the specific `icao24` address.
+- [x] **Hex-to-Registration Lookup**: Integrate the Hexdb.io API to convert ICAO24 hex codes into human-readable aircraft registrations (tail numbers).
+- [x] **Aircraft Metadata Enrichment**: Create a local cache in Supabase that maps `flight_iata` codes to their most recently used `tail_numbers` to estimate the aircraft identity when real-time data is incomplete.
 - [ ] **Airport Board Scraping**: Compare API data against scraped data from Maiquetía Airport digital board.
 
 ---
