@@ -63,7 +63,6 @@
 ### Frontend & Visualization (Core)
 
 - [x] **Dashboard**: Build UI with Tailwind CSS for flight cards.
-- [x] **Charts**: Integrate Recharts for cancellation trends.
 - [x] **Refinements**: Dark mode, social sharing, specialized visualizations.
 - [x] **Atomic Components**: Use atomic design to create the components (`Button`, `Icon`, `Badge`, etc.).
 - [x] **Icon Cleanup**: Remove the text inside the icons, just show the icon.
