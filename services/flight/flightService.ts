@@ -24,7 +24,11 @@ export class FlightService {
         const records = await provider.fetchFlightsByAirport(iata);
 
         if (records.length > 0) {
-          allRecords = [...allRecords, ...records];
+          // Enrich each record if tail_number is missing
+          const enrichedRecords = await Promise.all(
+            records.map((r) => this.enrichFlightData(r)),
+          );
+          allRecords = [...allRecords, ...enrichedRecords];
           providersUsed.push(provider.name);
           // If we got good data from one provider, do we stop or combine?
           // For now, we combine and deduplicate.
@@ -91,7 +95,10 @@ export class FlightService {
         const records = await provider.fetchFlightsByNumber(flightNum);
 
         if (records.length > 0) {
-          allRecords = [...allRecords, ...records];
+          const enrichedRecords = await Promise.all(
+            records.map((r) => this.enrichFlightData(r)),
+          );
+          allRecords = [...allRecords, ...enrichedRecords];
           providersUsed.push(provider.name);
         }
       } catch (error) {
@@ -195,5 +202,42 @@ export class FlightService {
       Sentry.captureException(error);
       return { resolvedCount: 0 };
     }
+  }
+
+  /**
+   * Enriches flight data by attempting to recover missing tail numbers
+   * using a local cache, OpenSky, and Hexdb.
+   */
+  private async enrichFlightData(record: FlightRecord): Promise<FlightRecord> {
+    if (record.tail_number && record.tail_number !== "UNKNOWN") return record;
+
+    const flightIata = record.flight_num;
+    if (!flightIata || flightIata === "UNKNOWN") return record;
+
+    try {
+      // 1. Try local cache first
+      const { data: cacheHit } = await supabaseAdmin
+        .from("aircraft_cache")
+        .select("tail_number")
+        .eq("flight_iata", flightIata)
+        .maybeSingle();
+
+      if (cacheHit?.tail_number) {
+        console.log(
+          `[FlightService] Cache hit for ${flightIata}: ${cacheHit.tail_number}`,
+        );
+        return { ...record, tail_number: cacheHit.tail_number };
+      }
+      // 2. Local cache only for sync flow
+      // (OpenSky/Hexdb enrichment moved to dedicated /api/enrich-aircraft endpoint)
+      return { ...record, tail_number: null };
+    } catch (error) {
+      console.warn(
+        `[FlightService] Enrichment failed for ${flightIata}:`,
+        error,
+      );
+    }
+
+    return record;
   }
 }

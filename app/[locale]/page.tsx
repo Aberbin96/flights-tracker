@@ -3,11 +3,7 @@ import { FlightRecord } from "@/types/flight";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { KPISection } from "@/components/KPISection";
-import {
-  AirlinePerformance,
-  AirlineStats,
-} from "@/components/AirlinePerformance";
-import { FleetActivity } from "@/components/FleetActivity";
+import { ConsolidatedFleetStatus } from "@/components/ConsolidatedFleetStatus";
 import { FlightTable } from "@/components/FlightTable";
 import {
   CARGO_AIRLINES,
@@ -304,7 +300,19 @@ async function getAirlinePerformance(
     }
   });
 
-  return performance.sort((a, b) => b.total_percentage - a.total_percentage);
+  return performance.sort((a, b) => b.today_flights - a.today_flights);
+}
+
+function calculateTrend(current: number, previous: number): number {
+  if (previous === 0) return 0;
+  return ((current - previous) / previous) * 100;
+}
+
+export interface AirlineStats {
+  airline: string;
+  total_percentage: number;
+  today_percentage: number;
+  today_flights: number;
 }
 
 interface PageProps {
@@ -322,9 +330,16 @@ export default async function Home({ params, searchParams }: PageProps) {
       ? resolvedSearchParams.origin
       : undefined;
   const dateFilter =
-    typeof resolvedSearchParams.date === "string"
+    typeof resolvedSearchParams.date === "string" &&
+    resolvedSearchParams.date !== ""
       ? resolvedSearchParams.date
-      : undefined;
+      : new Date().toISOString().split("T")[0];
+
+  // Calculate previous date for trends
+  const targetDate = new Date(dateFilter);
+  const previousDateObj = new Date(targetDate);
+  previousDateObj.setDate(targetDate.getDate() - 1);
+  const previousDate = previousDateObj.toISOString().split("T")[0];
 
   const airlineFilter =
     typeof resolvedSearchParams.airline === "string"
@@ -358,13 +373,14 @@ export default async function Home({ params, searchParams }: PageProps) {
   const effectiveTargetDate = dateFilter || currentCaracasDate;
 
   const [
-    { data: recentFlights, count: totalFlightsCount },
+    recentFlightsData,
     dayFlights,
     airports,
     airlines,
     minDate,
-    performanceData,
-    kpiStats,
+    currentKpis,
+    previousKpis,
+    previousPerformance,
   ] = await Promise.all([
     getRecentFlights(
       pageFilter,
@@ -386,14 +402,6 @@ export default async function Home({ params, searchParams }: PageProps) {
     getAirports(),
     getAirlines(),
     getMinDate(),
-    getAirlinePerformance(
-      effectiveTargetDate,
-      originFilter,
-      airlineFilter,
-      companyTypeFilter,
-      nationalFilter,
-      internationalFilter,
-    ),
     getDailyKpis(
       effectiveTargetDate,
       originFilter,
@@ -402,20 +410,45 @@ export default async function Home({ params, searchParams }: PageProps) {
       nationalFilter,
       internationalFilter,
     ),
+    getDailyKpis(
+      previousDate,
+      originFilter,
+      airlineFilter,
+      companyTypeFilter,
+      nationalFilter,
+      internationalFilter,
+    ),
+    getAirlinePerformance(
+      previousDate,
+      originFilter,
+      airlineFilter,
+      companyTypeFilter,
+      nationalFilter,
+      internationalFilter,
+    ),
   ]);
 
-  const {
-    totalFlights,
-    punctuality,
-    delays,
-    cancelled: cancellations,
-  } = {
-    ...kpiStats,
-    cancelled: kpiStats.cancellations,
+  const { data: recentFlights, count: totalFlightsCount } = recentFlightsData;
+
+  const { totalFlights, punctuality, delays, cancellations } = currentKpis || {
+    totalFlights: 0,
+    punctuality: 0,
+    delays: 0,
+    cancellations: 0,
   };
 
-  // Fleet Activity uses the full day's data
+  const kpiTrends = {
+    totalFlights: calculateTrend(totalFlights, previousKpis?.totalFlights || 0),
+    punctuality: punctuality - (previousKpis?.punctuality || 0),
+    delays: calculateTrend(delays, previousKpis?.delays || 0),
+    cancellations: calculateTrend(
+      cancellations,
+      previousKpis?.cancellations || 0,
+    ),
+  };
+
   const fleetActivityFlights = dayFlights;
+  const totalCount = totalFlightsCount;
 
   return (
     <div className="bg-background-light dark:bg-background-dark h-[100dvh] flex flex-col font-display">
@@ -428,16 +461,19 @@ export default async function Home({ params, searchParams }: PageProps) {
             punctuality={punctuality}
             delays={delays}
             cancellations={cancellations}
+            trends={kpiTrends}
           />
 
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
-            <AirlinePerformance data={performanceData} />
-            <FleetActivity flights={fleetActivityFlights} />
+          <div className="mb-8">
+            <ConsolidatedFleetStatus
+              flights={fleetActivityFlights}
+              previousPerformance={previousPerformance}
+            />
           </div>
 
           <FlightTable
             flights={recentFlights}
-            totalCount={totalFlightsCount}
+            totalCount={totalCount}
             currentPage={pageFilter}
             pageSize={20}
           />

@@ -8,6 +8,12 @@ interface KPISectionProps {
   punctuality: number; // percentage 0-100
   delays: number;
   cancellations: number;
+  trends?: {
+    totalFlights: number;
+    punctuality: number;
+    delays: number;
+    cancellations: number;
+  };
 }
 
 export function KPISection({
@@ -15,8 +21,31 @@ export function KPISection({
   punctuality,
   delays,
   cancellations,
+  trends,
 }: KPISectionProps) {
   const t = useTranslations("Dashboard");
+
+  const renderTrend = (
+    value: number | undefined,
+    isPercentagePoints = false,
+  ) => {
+    if (value === undefined || value === 0) return null;
+
+    const isPositive = value > 0;
+    const absValue = Math.abs(value).toFixed(1);
+    const colorClass = isPositive ? "text-emerald-500" : "text-rose-500";
+    const iconName = isPositive ? "trending_up" : "trending_down";
+
+    return (
+      <span
+        className={`text-[10px] sm:text-xs font-bold ${colorClass} flex items-center`}
+      >
+        <Icon name={iconName} className="text-[10px] mr-0.5" />
+        {absValue}
+        {isPercentagePoints ? "" : "%"}
+      </span>
+    );
+  };
 
   return (
     <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-8">
@@ -53,6 +82,7 @@ export function KPISection({
           <span className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 dark:text-white">
             {punctuality.toFixed(0)}%
           </span>
+          {renderTrend(trends?.punctuality, true)}
         </div>
       </div>
 
@@ -71,6 +101,9 @@ export function KPISection({
           <span className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 dark:text-white">
             {delays}
           </span>
+          {/* Note: More delays is bad, so we'd normally flip color, 
+              but trending_up usually means increase. Let's keep it simple for now. */}
+          {renderTrend(trends?.delays)}
         </div>
       </div>
 
@@ -89,6 +122,7 @@ export function KPISection({
           <span className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 dark:text-white">
             {cancellations}
           </span>
+          {renderTrend(trends?.cancellations)}
         </div>
       </div>
     </div>

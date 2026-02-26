@@ -140,6 +140,7 @@ export class AeroDataBoxAdapter implements IFlightProvider {
           departure_scheduled: departureScheduled,
           is_system_closed: false,
           tail_number: f.aircraft?.reg || null,
+          icao24: f.aircraft?.modeS || null,
         } as FlightRecord;
       })
       .filter(

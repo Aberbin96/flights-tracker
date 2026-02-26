@@ -23,4 +23,7 @@ export interface FlightRecord {
   arrival_iata: string;
   is_system_closed?: boolean;
   tail_number?: string | null;
+  icao24?: string | null;
+  enrichment_attempts?: number;
+  last_enrichment_attempt?: string | null;
 }
