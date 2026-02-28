@@ -54,12 +54,11 @@ export async function GET(request: Request) {
       total_count: totalCount,
       providers_used: Array.from(providersUsed),
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Sync] Global Error:", error);
     Sentry.captureException(error);
-    return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
-      { status: 500 },
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

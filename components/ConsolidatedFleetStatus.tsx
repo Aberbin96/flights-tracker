@@ -14,7 +14,6 @@ interface ConsolidatedFleetStatusProps {
 
 export function ConsolidatedFleetStatus({
   flights,
-  previousPerformance = [],
 }: ConsolidatedFleetStatusProps) {
   const t = useTranslations("Dashboard");
 

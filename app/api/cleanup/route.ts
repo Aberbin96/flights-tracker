@@ -66,12 +66,11 @@ export async function GET(request: Request) {
       auto_unknown_from_scheduled_count: cancelledData?.length || 0,
       next_leg_resolved_count: resolution.resolvedCount,
     });
-  } catch (error: any) {
-    console.error("Cleanup Unexpected Error:", error);
+  } catch (error: unknown) {
+    console.error("[Cleanup] Global Error:", error);
     Sentry.captureException(error);
-    return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
-      { status: 500 },
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

@@ -30,74 +30,29 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
     timeZone: "America/Caracas",
   }).format(new Date());
 
-  const initialAirport = searchParams.has("origin")
-    ? searchParams.get("origin") || "CCS"
-    : "CCS";
-  const initialDate = searchParams.has("date")
-    ? searchParams.get("date") || ""
-    : currentCaracasDate;
-  const initialAirline = searchParams.has("airline")
-    ? searchParams.get("airline") || ""
-    : "";
-  const initialCompanyType = searchParams.has("companyType")
-    ? searchParams.get("companyType") || "public"
-    : "public";
-
-  // Domestic vs International strings from URL
-  const initialNational = searchParams.has("national")
+  // Let's use searchParams as the source of truth for the values we display.
+  const currentAirport = searchParams.get("origin") || "CCS";
+  const currentDate = searchParams.get("date") || currentCaracasDate;
+  const currentAirline = searchParams.get("airline") || "";
+  const currentCompanyType = searchParams.get("companyType") || "public";
+  const currentNational = searchParams.has("national")
     ? searchParams.get("national") === "true"
     : true;
-  const initialInternational = searchParams.has("international")
+  const currentInternational = searchParams.has("international")
     ? searchParams.get("international") === "true"
     : true;
-
-  const [selectedAirport, setSelectedAirport] = useState(initialAirport);
-  const [selectedDate, setSelectedDate] = useState(initialDate);
-  const [selectedAirline, setSelectedAirline] = useState(initialAirline);
-  const [companyType, setCompanyType] = useState(initialCompanyType);
-  const [national, setNational] = useState(initialNational);
-  const [international, setInternational] = useState(initialInternational);
-
-  useEffect(() => {
-    setSelectedAirport(
-      searchParams.has("origin") ? searchParams.get("origin") || "CCS" : "CCS",
-    );
-    setSelectedDate(
-      searchParams.has("date")
-        ? searchParams.get("date") || ""
-        : currentCaracasDate,
-    );
-    setSelectedAirline(
-      searchParams.has("airline") ? searchParams.get("airline") || "" : "",
-    );
-    setCompanyType(
-      searchParams.has("companyType")
-        ? searchParams.get("companyType") || "public"
-        : "public",
-    );
-    setNational(
-      searchParams.has("national")
-        ? searchParams.get("national") === "true"
-        : true,
-    );
-    setInternational(
-      searchParams.has("international")
-        ? searchParams.get("international") === "true"
-        : true,
-    );
-  }, [searchParams, currentCaracasDate]);
 
   const updateFilters = (updates: Record<string, string | boolean>) => {
     const params = new URLSearchParams(searchParams.toString());
 
-    // Merge new updates with existing state
+    // Merge new updates with current source of truth
     const currentParams = {
-      origin: selectedAirport,
-      date: selectedDate,
-      airline: selectedAirline,
-      companyType: companyType,
-      national: national,
-      international: international,
+      origin: currentAirport,
+      date: currentDate,
+      airline: currentAirline,
+      companyType: currentCompanyType,
+      national: currentNational,
+      international: currentInternational,
       ...updates,
     };
 
@@ -114,19 +69,20 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
     else params.delete("companyType");
 
     // Only pass bools if they are flipped to false to save URL space (both are true by default)
-    if (!currentParams.national) params.set("national", "false");
+    if (!currentNational && !updates.national && updates.national !== undefined)
+      params.delete("national");
+    if (currentParams.national === false) params.set("national", "false");
     else params.delete("national");
-    if (!currentParams.international) params.set("international", "false");
+
+    if (currentParams.international === false)
+      params.set("international", "false");
     else params.delete("international");
 
     router.push(`?${params.toString()}`);
   };
 
-  // Apply filters is handled instantaneously by updateFilters();
-
   const handleAirportClick = (code: string) => {
-    const newAirport = selectedAirport === code ? "" : code;
-    setSelectedAirport(newAirport);
+    const newAirport = currentAirport === code ? "" : code;
     updateFilters({ origin: newAirport });
   };
 
@@ -176,9 +132,8 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
                   type="date"
                   min={minDate}
                   max={new Date().toISOString().split("T")[0]}
-                  value={selectedDate}
+                  value={currentDate}
                   onChange={(e) => {
-                    setSelectedDate(e.target.value);
                     updateFilters({ date: e.target.value });
                   }}
                   className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm text-slate-700 dark:text-slate-100"
@@ -192,9 +147,8 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
               {t("airline")}
             </h3>
             <select
-              value={selectedAirline}
+              value={currentAirline}
               onChange={(e) => {
-                setSelectedAirline(e.target.value);
                 updateFilters({ airline: e.target.value });
               }}
               className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm text-slate-700 dark:text-slate-100 appearance-none"
@@ -216,9 +170,8 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
               <label className="flex items-center gap-3 cursor-pointer group">
                 <input
                   type="checkbox"
-                  checked={national}
+                  checked={currentNational}
                   onChange={(e) => {
-                    setNational(e.target.checked);
                     updateFilters({ national: e.target.checked });
                   }}
                   className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary/20"
@@ -230,9 +183,8 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
               <label className="flex items-center gap-3 cursor-pointer group">
                 <input
                   type="checkbox"
-                  checked={international}
+                  checked={currentInternational}
                   onChange={(e) => {
-                    setInternational(e.target.checked);
                     updateFilters({ international: e.target.checked });
                   }}
                   className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary/20"
@@ -249,9 +201,8 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
               {t("companyType")}
             </h3>
             <select
-              value={companyType}
+              value={currentCompanyType}
               onChange={(e) => {
-                setCompanyType(e.target.value);
                 updateFilters({ companyType: e.target.value });
               }}
               className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm text-slate-700 dark:text-slate-100 appearance-none"
@@ -273,13 +224,13 @@ export function Sidebar({ airports, airlines, minDate }: SidebarProps) {
                 <div
                   key={code}
                   onClick={() => handleAirportClick(code)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${selectedAirport === code ? "bg-primary/10 text-primary font-semibold" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-slate-200"}`}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${currentAirport === code ? "bg-primary/10 text-primary font-semibold" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-slate-200"}`}
                 >
                   <Icon name="location_on" className="text-lg" />
                   <span className="text-sm font-medium">
                     {AIRPORT_NAMES[code] || code} ({code})
                   </span>
-                  {selectedAirport === code && (
+                  {currentAirport === code && (
                     <Icon name="check_circle" className="ml-auto text-sm" />
                   )}
                 </div>

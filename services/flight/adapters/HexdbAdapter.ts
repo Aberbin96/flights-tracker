@@ -24,11 +24,15 @@ export class HexdbAdapter {
       }
 
       return null;
-    } catch (error: any) {
-      console.warn(
-        `[HexdbAdapter] Failed to lookup hex ${hex}:`,
-        error.response?.status || error.message,
-      );
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.warn(
+          `[HexdbAdapter] Failed to lookup hex ${hex}:`,
+          error.response?.status || error.message,
+        );
+      } else {
+        console.warn(`[HexdbAdapter] Failed to lookup hex ${hex}:`, error);
+      }
       return null;
     }
   }

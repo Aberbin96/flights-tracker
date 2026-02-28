@@ -2,6 +2,40 @@ import axios from "axios";
 import { FlightStatus, FlightRecord } from "@/types/flight";
 import { IFlightProvider } from "../types";
 
+interface AeroDataBoxFlight {
+  number: string;
+  airline: {
+    name: string | null;
+  } | null;
+  departure: {
+    airport: {
+      iata: string | null;
+    } | null;
+    scheduledTime: {
+      local: string | null;
+    } | null;
+    revisedTime: {
+      local: string | null;
+    } | null;
+  } | null;
+  arrival: {
+    airport: {
+      iata: string | null;
+    } | null;
+    scheduledTime: {
+      local: string | null;
+    } | null;
+    revisedTime: {
+      local: string | null;
+    } | null;
+  } | null;
+  status: string;
+  aircraft: {
+    reg: string | null;
+    modeS: string | null;
+  } | null;
+}
+
 /**
  * AeroDataBox API Adapter (via RapidAPI)
  * Note: AeroDataBox uses separate endpoints for departures and arrivals.
@@ -41,11 +75,15 @@ export class AeroDataBoxAdapter implements IFlightProvider {
         },
       );
 
-      const departures = (response.data.departures || []).map((f: any) => ({
+      const departures = (
+        (response.data.departures as AeroDataBoxFlight[]) || []
+      ).map((f) => ({
         ...f,
         direction: "Departure",
       }));
-      const arrivals = (response.data.arrivals || []).map((f: any) => ({
+      const arrivals = (
+        (response.data.arrivals as AeroDataBoxFlight[]) || []
+      ).map((f) => ({
         ...f,
         direction: "Arrival",
       }));
@@ -54,12 +92,19 @@ export class AeroDataBoxAdapter implements IFlightProvider {
       const mappedArrivals = this.mapRecords(arrivals, iata, "Arrival");
 
       return [...mappedDepartures, ...mappedArrivals];
-    } catch (error: any) {
-      console.error(
-        `[AeroDataBoxAdapter] Error fetching FIDS for ${iata}:`,
-        error.response?.status,
-        error.response?.data || error.message,
-      );
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          `[AeroDataBoxAdapter] Error fetching FIDS for ${iata}:`,
+          error.response?.status,
+          error.response?.data || error.message,
+        );
+      } else {
+        console.error(
+          `[AeroDataBoxAdapter] Error fetching FIDS for ${iata}:`,
+          error,
+        );
+      }
       return [];
     }
   }
@@ -89,12 +134,12 @@ export class AeroDataBoxAdapter implements IFlightProvider {
   }
 
   private mapRecords(
-    data: any[],
+    data: AeroDataBoxFlight[],
     contextIata?: string,
     directionHint?: "Departure" | "Arrival",
   ): FlightRecord[] {
     return data
-      .map((f: any) => {
+      .map((f) => {
         const flightNum = f.number || "UNKNOWN";
         const airline = f.airline?.name || "Unknown Airline";
 
@@ -103,8 +148,22 @@ export class AeroDataBoxAdapter implements IFlightProvider {
         const departureScheduled = f.departure?.scheduledTime?.local || null;
         const arrivalEstimated = f.arrival?.scheduledTime?.local || null;
         const arrivalActual = f.arrival?.revisedTime?.local || null;
-        const status = this.mapStatus(f.status);
         const departureActual = f.departure?.revisedTime?.local || null;
+
+        let status = this.mapStatus(f.status);
+
+        // Fallback logic if status is unknown
+        if (status === FlightStatus.UNKNOWN) {
+          if (arrivalActual) {
+            status = FlightStatus.LANDED;
+          } else if (departureActual) {
+            status = FlightStatus.ACTIVE;
+          } else if (departureScheduled) {
+            const isFuture =
+              new Date(departureScheduled).getTime() > Date.now();
+            status = isFuture ? FlightStatus.SCHEDULED : FlightStatus.ACTIVE;
+          }
+        }
 
         if (directionHint === "Departure") {
           origin = contextIata || "UNKNOWN";

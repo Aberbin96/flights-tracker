@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Transparency Flights Tracker ✈️
+
+A modern web application for tracking and analyzing flight delays and cancellations at key airports (primarily CCS - Caracas). This project aims to provide transparency into airline performance through automated data synchronization and advanced aircraft enrichment.
+
+## Key Features
+
+- **Automated Flight Synchronization**: Multi-source data fetching from AviationStack and AeroDataBox.
+- **Aircraft Enrichment**: Automated resolution of aircraft registration (tail numbers) via Hexdb.io and OpenSky Network cross-referencing.
+- **Intelligent Status Resolution**: Heuristics to resolve "Unknown" or stuck flights based on actual arrival/departure times and next-leg activity.
+- **Advanced Filtering**: Filter by Date, Airline, Flight Type (Domestic/International), and Company Type (Commercial, Cargo, Private, Public).
+- **Internationalization**: Full support for English and Spanish (via `next-intl`).
+- **Modern UI**: Dark mode, responsive design, and atomic component architecture.
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), Tailwind CSS, Framer Motion.
+- **Backend**: Supabase (PostgreSQL, Edge Functions), Axiom (Logging).
+- **APIs**: AviationStack, AeroDataBox (via RapidAPI), Hexdb.io, OpenSky Network.
+- **Monitoring**: Sentry Integration.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 20+
+- Supabase Account
+- API Keys for AviationStack and AeroDataBox
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1.  Clone the repository.
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Configure environment variables in `.env.local`:
+    - `NEXT_PUBLIC_SUPABASE_URL`
+    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+    - `SUPABASE_SERVICE_ROLE_KEY`
+    - `AVIATION_API_KEY`
+    - `AERODATABOX_API_KEY`
+    - `CRON_SECRET`
+4.  Run the development server:
+    ```bash
+    npm run dev
+    ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Documentation
 
-## Learn More
+- [Database Schema](docs/database.md)
+- [Project Todo List](docs/todo.md)
 
-To learn more about Next.js, take a look at the following resources:
+## License
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT

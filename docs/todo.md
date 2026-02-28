@@ -44,15 +44,15 @@
   - `Departure exists + Next flight detected` = **Landed**.
   - `Departure exists + No arrival + No OpenSky signal` = **Unknown**.
   - `Departure NULL + Next flight NULL` = **Cancelled**.
+  - `Unknown + Actual arrival time present` = **Landed** (Improved fallback logic).
 - [x] **Tail-Number Recovery Logic**: If `tail_number` is missing, use the `flight_iata` and `scheduled_departure` to query the OpenSky Network state vectors. Filter by aircraft category and airline callsign (ROI for Avior) to identify the specific `icao24` address.
 - [x] **Hex-to-Registration Lookup**: Integrate the Hexdb.io API to convert ICAO24 hex codes into human-readable aircraft registrations (tail numbers).
 - [x] **Aircraft Metadata Enrichment**: Create a local cache in Supabase that maps `flight_iata` codes to their most recently used `tail_numbers` to estimate the aircraft identity when real-time data is incomplete.
 - [ ] **Airport Board Scraping**: Compare API data against scraped data from Maiquetía Airport digital board.
 
-### Optimization & Performance
-
-- [ ] **Supabase Query Optimization**: Review and optimize database queries and views to ensure efficient data retrieval and minimize load.
-- [ ] **Repository Cleanup & Optimization**: Audit the codebase for unused code/dependencies, optimize assets, and improve general repository structure and build performance.
+- [x] **Supabase Query Optimization**: Review and optimize database queries and views to ensure efficient data retrieval and minimize load.
+- [x] **Repository Cleanup & Optimization**: Audit the codebase for unused code/dependencies, optimize assets, and improve general repository structure and build performance.
+- [x] **TypeScript Strictness**: Fix all 'any' types and React Hook best practice violations.
 
 ---
 
