@@ -2,6 +2,38 @@ import axios from "axios";
 import { FlightStatus, FlightRecord } from "@/types/flight";
 import { IFlightProvider } from "../types";
 
+interface AviationStackFlight {
+  flight: {
+    iata: string | null;
+    icao: string | null;
+    number: string | null;
+  };
+  airline: {
+    name: string | null;
+    iata: string | null;
+  };
+  departure: {
+    iata: string | null;
+    icao: string | null;
+    scheduled: string | null;
+    actual: string | null;
+    delay: number | null;
+  };
+  arrival: {
+    iata: string | null;
+    icao: string | null;
+    estimated: string | null;
+    scheduled: string | null;
+    actual: string | null;
+  };
+  flight_status: string | null;
+  flight_date: string | null;
+  aircraft: {
+    registration: string | null;
+    icao24: string | null;
+  } | null;
+}
+
 export class AviationStackAdapter implements IFlightProvider {
   name = "AviationStack";
   private apiKey: string;
@@ -24,7 +56,7 @@ export class AviationStackAdapter implements IFlightProvider {
         },
       );
 
-      const data = response.data.data || [];
+      const data = (response.data.data as AviationStackFlight[]) || [];
       return this.mapRecords(data);
     } catch (error) {
       console.error(`[AviationStackAdapter] Error matching ${iata}:`, error);
@@ -46,7 +78,7 @@ export class AviationStackAdapter implements IFlightProvider {
         },
       );
 
-      const data = response.data.data || [];
+      const data = (response.data.data as AviationStackFlight[]) || [];
       return this.mapRecords(data);
     } catch (error) {
       console.error(
@@ -57,9 +89,9 @@ export class AviationStackAdapter implements IFlightProvider {
     }
   }
 
-  private mapRecords(data: unknown[]): FlightRecord[] {
+  private mapRecords(data: AviationStackFlight[]): FlightRecord[] {
     return data
-      .map((flight: any) => {
+      .map((flight) => {
         const flightNum =
           flight.flight.iata ||
           flight.flight.icao ||
@@ -70,35 +102,44 @@ export class AviationStackAdapter implements IFlightProvider {
         const origin =
           flight.departure.iata || flight.departure.icao || "UNKNOWN";
 
+        const arrivalEstimated =
+          flight.arrival.estimated || flight.arrival.scheduled || null;
+        const arrivalActual = flight.arrival.actual || null;
+        const departureActual = flight.departure.actual || null;
+        const departureScheduled = flight.departure.scheduled || null;
+
         let status = (
           flight.flight_status || FlightStatus.UNKNOWN
         ).toLowerCase();
 
-        const flightDate =
-          flight.flight_date ||
-          (flight.departure.scheduled &&
-            flight.departure.scheduled.split("T")[0]) ||
-          new Date().toISOString().split("T")[0];
-
-        const arrivalEstimated =
-          flight.arrival.estimated || flight.arrival.scheduled || null;
-        const arrivalActual = flight.arrival.actual || null;
-
+        // Fallback logic for status
         if (arrivalActual) {
           status = FlightStatus.LANDED;
+        } else if (status === FlightStatus.UNKNOWN || !flight.flight_status) {
+          if (departureActual) {
+            status = FlightStatus.ACTIVE;
+          } else if (departureScheduled) {
+            const isFuture =
+              new Date(departureScheduled).getTime() > Date.now();
+            status = isFuture ? FlightStatus.SCHEDULED : FlightStatus.ACTIVE;
+          }
         }
 
+        const flightDate =
+          flight.flight_date ||
+          (departureScheduled && departureScheduled.split("T")[0]) ||
+          new Date().toISOString().split("T")[0];
+
         let delayMinutes = flight.departure.delay || 0;
-        if (flight.departure.scheduled && flight.departure.actual) {
-          const scheduledTime = new Date(flight.departure.scheduled).getTime();
-          const actualTime = new Date(flight.departure.actual).getTime();
+        if (departureScheduled && departureActual) {
+          const scheduledTime = new Date(departureScheduled).getTime();
+          const actualTime = new Date(departureActual).getTime();
           delayMinutes = Math.max(
             0,
             Math.round((actualTime - scheduledTime) / 60000),
           );
         }
 
-        const departureScheduled = flight.departure.scheduled || null;
         const arrivalIata =
           flight.arrival.iata || flight.arrival.icao || "UNKNOWN";
 

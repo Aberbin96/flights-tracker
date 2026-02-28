@@ -20,6 +20,7 @@ The primary table storing all captured flight information.
 | `flight_date`             | `date`        | Date of the flight                                           |
 | `captured_at`             | `timestamptz` | When the record was first captured                           |
 | `departure_scheduled`     | `timestamptz` | Scheduled departure time                                     |
+| `departure_actual`        | `timestamptz` | Actual departure time                                        |
 | `arrival_estimated`       | `timestamptz` | Estimated arrival time                                       |
 | `arrival_actual`          | `timestamptz` | Actual arrival time                                          |
 | `tail_number`             | `text`        | Aircraft registration (e.g., YV1234).                        |

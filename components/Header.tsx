@@ -8,7 +8,6 @@ import { LocalClock } from "./LocalClock";
 import { useTheme } from "next-themes";
 import { Button } from "./atoms/Button";
 import { Icon } from "./atoms/Icon";
-import { Tooltip } from "./atoms/Tooltip";
 
 export function Header() {
   const t = useTranslations("Dashboard");
@@ -175,7 +174,7 @@ export function Header() {
 
         <a
           href={`/${locale}/about`}
-          className="flex-1 lg:flex-none flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 transition-allh-10 lg:h-9 px-4"
+          className="flex-1 lg:flex-none flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 transition-all h-10 lg:h-9 px-4"
         >
           <Icon name="info" className="text-xl" />
           <span className="text-sm font-bold tracking-wide">{t("info")}</span>

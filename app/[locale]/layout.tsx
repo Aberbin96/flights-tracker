@@ -52,6 +52,41 @@ export async function generateMetadata({
 
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Header } from "@/components/Header";
+import { Sidebar } from "@/components/Sidebar";
+import { supabase } from "@/utils/supabase/client";
+import { TRACKED_AIRPORTS } from "@/constants/flights";
+
+// Fetch distinct origin airports for the filter using the view
+async function getAirports() {
+  return TRACKED_AIRPORTS;
+}
+
+// Fetch distinct airlines for the filter using the view
+async function getAirlines() {
+  const { data, error } = await supabase
+    .from("distinct_airlines_view")
+    .select("airline");
+
+  if (error) {
+    console.error("Error fetching airlines from view:", error);
+    return [];
+  }
+
+  return data.map((item) => item.airline);
+}
+
+// Fetch min date for the calendar
+async function getMinDate() {
+  const { data, error } = await supabase
+    .from("flights_history")
+    .select("flight_date")
+    .order("flight_date", { ascending: true })
+    .limit(1);
+
+  if (error || !data || data.length === 0) return "";
+  return data[0].flight_date;
+}
 
 export default async function LocaleLayout({
   children,
@@ -64,6 +99,13 @@ export default async function LocaleLayout({
   // Providing all messages to the client
   // side is the easiest way to get started
   const messages = await getMessages();
+
+  // Fetch data for the Sidebar
+  const [airports, airlines, minDate] = await Promise.all([
+    getAirports(),
+    getAirlines(),
+    getMinDate(),
+  ]);
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -82,7 +124,19 @@ export default async function LocaleLayout({
       >
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            {children}
+            <div className="bg-background-light dark:bg-background-dark h-[100dvh] flex flex-col font-display">
+              <Header />
+              <div className="flex flex-1 overflow-hidden">
+                <Sidebar
+                  airports={airports}
+                  airlines={airlines}
+                  minDate={minDate}
+                />
+                <main className="flex-1 overflow-y-auto p-4 md:p-8">
+                  {children}
+                </main>
+              </div>
+            </div>
             <Analytics />
             <SpeedInsights />
           </ThemeProvider>

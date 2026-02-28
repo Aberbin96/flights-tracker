@@ -28,7 +28,7 @@ export function LocalClock() {
     const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [locale]);
 
   // Avoid hydration mismatch by not rendering until client-side
   if (!time) return null;

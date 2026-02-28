@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/utils/supabase/admin";
 import { HexdbAdapter } from "@/services/flight/adapters/HexdbAdapter";
 import { DB_TABLES } from "@/constants/database";
 import * as Sentry from "@sentry/nextjs";
+import { FlightRecord } from "@/types/flight";
 
 export const dynamic = "force-dynamic";
 
@@ -51,13 +52,15 @@ export async function GET(request: Request) {
       });
     }
 
+    const typedFlights = flights as FlightRecord[];
+
     console.log(
-      `[Enrichment] Processing ${flights.length} flights via Hexdb resolution...`,
+      `[Enrichment] Processing ${typedFlights.length} flights via Hexdb resolution...`,
     );
 
-    for (const flight of flights as any[]) {
+    for (const flight of typedFlights) {
       const flightIata = flight.flight_num;
-      const flightId = flight.id;
+      const flightId = flight.id as unknown as string;
       const hexCode = flight.icao24;
 
       if (!flightIata || !hexCode) {

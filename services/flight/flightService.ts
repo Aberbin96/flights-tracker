@@ -2,6 +2,7 @@ import { FlightRecord } from "@/types/flight";
 import { IFlightProvider } from "./types";
 import { supabaseAdmin } from "@/utils/supabase/admin";
 import * as Sentry from "@sentry/nextjs";
+import axios from "axios";
 
 export class FlightService {
   private providers: IFlightProvider[];
@@ -33,10 +34,13 @@ export class FlightService {
           // If we got good data from one provider, do we stop or combine?
           // For now, we combine and deduplicate.
         }
-      } catch (error: any) {
-        const isRateLimit =
-          error.response?.status === 429 ||
-          error.message?.includes("rate limit");
+      } catch (error: unknown) {
+        let isRateLimit = false;
+        if (axios.isAxiosError(error)) {
+          isRateLimit =
+            error.response?.status === 429 ||
+            error.message?.includes("rate limit");
+        }
 
         console.warn(
           `[FlightService] Provider ${provider.name} ${isRateLimit ? "rate limited" : "failed"} for ${iata}. ${!isRateLimit ? "Skipping..." : ""}`,
@@ -153,12 +157,22 @@ export class FlightService {
       const fourHoursAgo = new Date(
         Date.now() - 4 * 60 * 60 * 1000,
       ).toISOString();
+      const twentyFourHoursAgo = new Date(
+        Date.now() - 24 * 60 * 60 * 1000,
+      ).toISOString();
 
+      // Find flights that are potentially stuck
+      // Criteria:
+      // 1. Not in a terminal state (landed/cancelled/diverted)
+      // 2. Scheduled departure was more than 4 hours ago OR captured more than 24 hours ago (for those without departure time)
+      // 3. Must have a tail_number to check for the next leg
       const { data: stuckFlights, error: fetchError } = await supabaseAdmin
         .from("flights_history")
         .select("*")
         .not("status", "in", '("landed", "cancelled", "diverted")')
-        .lt("departure_scheduled", fourHoursAgo)
+        .or(
+          `departure_scheduled.lt.${fourHoursAgo},and(departure_scheduled.is.null,captured_at.lt.${twentyFourHoursAgo})`,
+        )
         .not("tail_number", "is", null);
 
       if (fetchError || !stuckFlights || stuckFlights.length === 0) {
