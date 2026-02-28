@@ -56,17 +56,40 @@ export function FleetActivity({ flights }: FleetActivityProps) {
                   statusText = t("delayed");
                 }
 
-                const tooltipContent = `${flight.flight_num}: ${statusText}`;
+                // Format time (HH:MM)
+                const scheduledTime = flight.departure_scheduled
+                  ? new Date(flight.departure_scheduled).toLocaleTimeString(
+                      "en-US",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      },
+                    )
+                  : "--:--";
+
+                const tailText = flight.tail_number
+                  ? ` | ${flight.tail_number}`
+                  : "";
+                const tooltipContent = `${flight.flight_num} (${flight.origin} → ${flight.arrival_iata} | ${scheduledTime}${tailText}): ${statusText}`;
 
                 return (
                   <Tooltip
                     key={flight.id || flight.flight_num}
                     content={tooltipContent}
                   >
-                    <Icon
-                      name="flight"
-                      className={`${colorClass} text-base sm:text-lg cursor-help hover:scale-110 transition-transform`}
-                    />
+                    <div className="relative group/icon cursor-help">
+                      <Icon
+                        name="flight"
+                        className={`${colorClass} text-base sm:text-lg group-hover/icon:scale-110 transition-transform`}
+                      />
+                      {flight.delay_minutes > 15 &&
+                        flight.status !== "cancelled" && (
+                          <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[9px] font-bold px-1 py-0.5 rounded-sm shadow-sm z-10 scale-90 group-hover/icon:scale-100 transition-transform whitespace-nowrap">
+                            +{flight.delay_minutes}m
+                          </div>
+                        )}
+                    </div>
                   </Tooltip>
                 );
               })}

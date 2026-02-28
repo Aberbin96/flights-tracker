@@ -207,7 +207,14 @@ export function FlightTable({
                     </div>
                   </td>
                   <td className="hidden sm:table-cell px-3 sm:px-5 py-2 sm:py-4 text-sm text-slate-500 dark:text-slate-400">
-                    {flight.origin}
+                    <span className="flex items-center gap-1.5">
+                      {flight.origin}{" "}
+                      <Icon
+                        name="flight_takeoff"
+                        className="text-[12px] text-slate-400"
+                      />{" "}
+                      {flight.arrival_iata}
+                    </span>
                   </td>
                   <td className="px-3 sm:px-5 py-2 sm:py-4 flex items-center gap-1.5">
                     <Badge variant={badgeVariant} text={statusText} />

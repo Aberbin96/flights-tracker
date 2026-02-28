@@ -2,6 +2,16 @@
 
 ## Pending Tasks
 
+- [x] Change the yellow color of the flights schuedel because looks like the color of the flights that are late. (Dark mode)
+- [x] Change airports hover color. (Dark mode)
+- [x] Add something to know if a flight was delayed or not.
+- [x] Canceltions is good is are less cancelations
+- [x] Add to the tooltip the flight date time, and the tail number
+- [x] In the airline data we need something to show the airline rating
+- [x] Just show the airports that we are tracking
+- [x] Remove the graph icon in the flight count
+- [x] Add the destination airport to the flight card
+
 ### User Actions (Required)
 
 - [x] **Test the API endpoint** `v1/flights` using `?airport=CCS` manually to verify data return.
@@ -38,6 +48,11 @@
 - [x] **Hex-to-Registration Lookup**: Integrate the Hexdb.io API to convert ICAO24 hex codes into human-readable aircraft registrations (tail numbers).
 - [x] **Aircraft Metadata Enrichment**: Create a local cache in Supabase that maps `flight_iata` codes to their most recently used `tail_numbers` to estimate the aircraft identity when real-time data is incomplete.
 - [ ] **Airport Board Scraping**: Compare API data against scraped data from Maiquetía Airport digital board.
+
+### Optimization & Performance
+
+- [ ] **Supabase Query Optimization**: Review and optimize database queries and views to ensure efficient data retrieval and minimize load.
+- [ ] **Repository Cleanup & Optimization**: Audit the codebase for unused code/dependencies, optimize assets, and improve general repository structure and build performance.
 
 ---
 
