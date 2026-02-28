@@ -28,12 +28,17 @@ export function KPISection({
   const renderTrend = (
     value: number | undefined,
     isPercentagePoints = false,
+    inverse = false,
   ) => {
     if (value === undefined || value === 0) return null;
 
     const isPositive = value > 0;
     const absValue = Math.abs(value).toFixed(1);
-    const colorClass = isPositive ? "text-emerald-500" : "text-rose-500";
+
+    // For normal stats (like punctuality), positive is good (green).
+    // For inverse stats (like delays/cancellations), negative is good (green).
+    const isGood = inverse ? !isPositive : isPositive;
+    const colorClass = isGood ? "text-emerald-500" : "text-rose-500";
     const iconName = isPositive ? "trending_up" : "trending_down";
 
     return (
@@ -101,9 +106,8 @@ export function KPISection({
           <span className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 dark:text-white">
             {delays}
           </span>
-          {/* Note: More delays is bad, so we'd normally flip color, 
-              but trending_up usually means increase. Let's keep it simple for now. */}
-          {renderTrend(trends?.delays)}
+          {/* Note: More delays is bad, so we invert the color logic */}
+          {renderTrend(trends?.delays, false, true)}
         </div>
       </div>
 
@@ -122,7 +126,7 @@ export function KPISection({
           <span className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 dark:text-white">
             {cancellations}
           </span>
-          {renderTrend(trends?.cancellations)}
+          {renderTrend(trends?.cancellations, false, true)}
         </div>
       </div>
     </div>

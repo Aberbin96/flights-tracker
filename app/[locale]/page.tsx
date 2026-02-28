@@ -9,22 +9,14 @@ import {
   CARGO_AIRLINES,
   VZLA_IATA,
   PUBLIC_AIRLINES,
+  TRACKED_AIRPORTS,
 } from "@/constants/flights";
 
 export const dynamic = "force-dynamic";
 
 // Fetch distinct origin airports for the filter using the view
 async function getAirports() {
-  const { data, error } = await supabase
-    .from("distinct_airports_view")
-    .select("origin");
-
-  if (error) {
-    console.error("Error fetching airports from view:", error);
-    return [];
-  }
-
-  return data.map((item) => item.origin);
+  return TRACKED_AIRPORTS;
 }
 
 // Fetch distinct airlines for the filter using the view
