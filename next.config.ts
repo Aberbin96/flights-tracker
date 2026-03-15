@@ -12,5 +12,11 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   silent: !process.env.CI,
   widenClientFileUpload: true,
   // tunnelRoute: "/monitoring", // Optional: Uncomment if ad-blocker bypassing is needed
-  disableLogger: true,
+  webpack: {
+    automaticVercelMonitors: true,
+
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
 });

@@ -42,7 +42,7 @@ export async function GET(request: Request) {
       .eq("status", "scheduled")
       .lt(
         "departure_scheduled",
-        new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+        new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
       )
       .select();
 
