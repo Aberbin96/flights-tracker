@@ -1,0 +1,27 @@
+name: Sync Flight Data
+
+on:
+  schedule:
+    - cron: "0 0,12 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Sync Flights
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - name: Run Sync
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          AVIATION_API_KEY: ${{ secrets.AVIATION_API_KEY }}
+          AERODATABOX_API_KEY: ${{ secrets.AERODATABOX_API_KEY }}
+        run: npx tsx scripts/sync-flights.ts

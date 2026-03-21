@@ -14,11 +14,7 @@ export const dynamic = "force-dynamic";
 // Helper to apply common filters to any query targeting flights or views
 function applyFiltersToQuery(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  query: any, // Using any here because it can be multiple types of Postgrest queries, but I'll try to find a better one or just use a more specific union if possible. Actually, for now, let's just use 'any' if it's too complex to type, but the lint error was on line 50. Wait, the lint said page.tsx:50:10.
-  // Let's use a more generic type or just disable if it's a false positive for a complex Supabase type.
-  // Actually, I'll see if I can use a more specific type from Supabase.
-  // For now, I'll just change 'any' to 'unknown' and cast if needed, or just suppress if it's a utility.
-  // Let's try to use a more specific type.
+  query: any,
   {
     origin,
     airline,

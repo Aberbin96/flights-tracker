@@ -13,9 +13,15 @@ export class FlightService {
 
   async syncAirport(
     iata: string,
-  ): Promise<{ success: boolean; count: number; providersUsed: string[] }> {
+  ): Promise<{ 
+    success: boolean; 
+    count: number; 
+    providersUsed: string[]; 
+    failedProviders?: Record<string, string> 
+  }> {
     let allRecords: FlightRecord[] = [];
     const providersUsed: string[] = [];
+    const failedProviders: Record<string, string> = {};
 
     for (const provider of this.providers) {
       try {
@@ -31,20 +37,27 @@ export class FlightService {
           );
           allRecords = [...allRecords, ...enrichedRecords];
           providersUsed.push(provider.name);
-          // If we got good data from one provider, do we stop or combine?
-          // For now, we combine and deduplicate.
         }
       } catch (error: unknown) {
+        let errorMsg = "Unknown error";
         let isRateLimit = false;
+
         if (axios.isAxiosError(error)) {
-          isRateLimit =
-            error.response?.status === 429 ||
-            error.message?.includes("rate limit");
+          isRateLimit = error.response?.status === 429 || error.message?.includes("rate limit");
+          errorMsg = error.response?.data?.error?.message || error.response?.data?.message || error.message;
+          
+          if (error.response?.status === 401 || error.response?.status === 403) {
+            errorMsg = `Auth/Credit issue: ${errorMsg}`;
+          }
+        } else if (error instanceof Error) {
+          errorMsg = error.message;
         }
 
         console.warn(
-          `[FlightService] Provider ${provider.name} ${isRateLimit ? "rate limited" : "failed"} for ${iata}. ${!isRateLimit ? "Skipping..." : ""}`,
+          `[FlightService] Provider ${provider.name} ${isRateLimit ? "rate limited" : "failed"} for ${iata}: ${errorMsg}`,
         );
+
+        failedProviders[provider.name] = errorMsg;
 
         if (!isRateLimit) {
           Sentry.captureException(error);
@@ -53,14 +66,13 @@ export class FlightService {
     }
 
     if (allRecords.length === 0) {
-      return { success: false, count: 0, providersUsed };
+      return { success: false, count: 0, providersUsed, failedProviders };
     }
 
     // Deduplicate
     const uniqueRecordsMap = new Map<string, FlightRecord>();
     allRecords.forEach((record) => {
       const key = `${record.flight_num}-${record.flight_date}`;
-      // Basic merge strategy: newer 'captured_at' or more detailed info could be prioritized
       uniqueRecordsMap.set(key, record);
     });
     const uniqueRecords = Array.from(uniqueRecordsMap.values());
@@ -82,6 +94,7 @@ export class FlightService {
       success: true,
       count: uniqueRecords.length,
       providersUsed,
+      failedProviders: Object.keys(failedProviders).length > 0 ? failedProviders : undefined
     };
   }
 
@@ -148,32 +161,24 @@ export class FlightService {
 
   /**
    * Resolves flights that are stuck in 'active' or 'scheduled' status
-   * by checking if the aircraft (tail_number) has already started a new leg.
+   * by checking if the aircraft (tail_number) has already started a new leg,
+   * or if enough time has passed.
    */
   async resolveStuckFlights(): Promise<{ resolvedCount: number }> {
     try {
-      // 1. Find flights that are potentially stuck
-      // Criteria: Not landed/cancelled/diverted, and older than 4 hours past departure
-      const fourHoursAgo = new Date(
-        Date.now() - 4 * 60 * 60 * 1000,
-      ).toISOString();
-      const twentyFourHoursAgo = new Date(
-        Date.now() - 24 * 60 * 60 * 1000,
-      ).toISOString();
+      const now = new Date();
+      const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString();
+      const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString();
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
 
       // Find flights that are potentially stuck
-      // Criteria:
-      // 1. Not in a terminal state (landed/cancelled/diverted)
-      // 2. Scheduled departure was more than 4 hours ago OR captured more than 24 hours ago (for those without departure time)
-      // 3. Must have a tail_number to check for the next leg
       const { data: stuckFlights, error: fetchError } = await supabaseAdmin
         .from("flights_history")
         .select("*")
         .not("status", "in", '("landed", "cancelled", "diverted")')
         .or(
           `departure_scheduled.lt.${fourHoursAgo},and(departure_scheduled.is.null,captured_at.lt.${twentyFourHoursAgo})`,
-        )
-        .not("tail_number", "is", null);
+        );
 
       if (fetchError || !stuckFlights || stuckFlights.length === 0) {
         return { resolvedCount: 0 };
@@ -182,22 +187,36 @@ export class FlightService {
       let resolvedCount = 0;
 
       for (const flight of stuckFlights) {
-        // 2. Check if this aircraft has a NEWER flight
-        // Criteria: same tail_number, departure > current, and origin == current.arrival
-        const { data: newerFlights, error: newerError } = await supabaseAdmin
-          .from("flights_history")
-          .select("id, origin")
-          .eq("tail_number", flight.tail_number)
-          .gt("departure_scheduled", flight.departure_scheduled)
-          .eq("origin", flight.arrival_iata) // Strict check: next flight must start where this one ended
-          .limit(1);
+        let shouldResolve = false;
 
-        if (!newerError && newerFlights && newerFlights.length > 0) {
-          // 3. Mark as landed via system
-          console.log(
-            `[FlightService] Resolving stuck flight ${flight.flight_num} (${flight.flight_date}) for aircraft ${flight.tail_number}. Newer leg detected.`,
-          );
+        // 1. If we have a tail_number, check for the next leg
+        if (flight.tail_number) {
+          const { data: newerFlights, error: newerError } = await supabaseAdmin
+            .from("flights_history")
+            .select("id, origin")
+            .eq("tail_number", flight.tail_number)
+            .gt("departure_scheduled", flight.departure_scheduled)
+            .eq("origin", flight.arrival_iata)
+            .limit(1);
 
+          if (!newerError && newerFlights && newerFlights.length > 0) {
+            console.log(`[FlightService] Resolving ${flight.flight_num} (${flight.flight_date}) - Newer leg for ${flight.tail_number} detected.`);
+            shouldResolve = true;
+          }
+        }
+
+        // 2. If no tail number OR no next leg found yet, check if it's way overdue (> 12h, or > 24h if no departure time)
+        if (!shouldResolve) {
+          if (flight.departure_scheduled && flight.departure_scheduled < twelveHoursAgo) {
+            console.log(`[FlightService] Resolving ${flight.flight_num} (${flight.flight_date}) - Significantly overdue (>12h).`);
+            shouldResolve = true;
+          } else if (!flight.departure_scheduled && flight.captured_at < twentyFourHoursAgo) {
+            console.log(`[FlightService] Resolving ${flight.flight_num} (${flight.flight_date}) - No departure time and old capture (>24h).`);
+            shouldResolve = true;
+          }
+        }
+
+        if (shouldResolve) {
           await supabaseAdmin
             .from("flights_history")
             .update({
