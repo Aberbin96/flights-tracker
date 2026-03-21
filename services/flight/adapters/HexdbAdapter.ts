@@ -36,4 +36,28 @@ export class HexdbAdapter {
       return null;
     }
   }
+
+  /**
+   * Fetches ICAO24 hex code for a given aircraft registration (tail number).
+   * @param registration Registration string (e.g. YV2945)
+   * @returns ICAO24 hex code or null
+   */
+  async getHexCode(registration: string): Promise<string | null> {
+    try {
+      if (!registration) return null;
+
+      const cleanReg = registration.replace(/[-\s]/g, "").toUpperCase();
+      console.log(`[HexdbAdapter] Looking up ICAO24 for registration: ${cleanReg}`);
+      const response = await axios.get(`${this.baseUrl}/registration/${cleanReg}`);
+
+      if (response.data && response.data.Icao) {
+        return response.data.Icao.toLowerCase();
+      }
+
+      return null;
+    } catch (error: any) {
+      console.warn(`[HexdbAdapter] Error looking up ICAO for reg ${registration}: ${error.message}`);
+      return null;
+    }
+  }
 }

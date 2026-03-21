@@ -1,6 +1,7 @@
 import axios from "axios";
 import { FlightStatus, FlightRecord } from "@/types/flight";
 import { IFlightProvider } from "../types";
+import { StatusService } from "../statusService";
 
 interface AviationStackFlight {
   flight: {
@@ -56,7 +57,10 @@ export class AviationStackAdapter implements IFlightProvider {
         },
       );
 
-      const data = (response.data.data as AviationStackFlight[]) || [];
+      const { data: responseBody, headers } = response;
+      this.updateLimitsFromHeaders(headers);
+
+      const data = (responseBody.data as AviationStackFlight[]) || [];
       return this.mapRecords(data);
     } catch (error) {
       console.error(`[AviationStackAdapter] Error matching ${iata}:`, error);
@@ -78,7 +82,10 @@ export class AviationStackAdapter implements IFlightProvider {
         },
       );
 
-      const data = (response.data.data as AviationStackFlight[]) || [];
+      const { data: responseBody, headers } = response;
+      this.updateLimitsFromHeaders(headers);
+
+      const data = (responseBody.data as AviationStackFlight[]) || [];
       return this.mapRecords(data);
     } catch (error) {
       console.error(
@@ -86,6 +93,21 @@ export class AviationStackAdapter implements IFlightProvider {
         error,
       );
       return [];
+    }
+  }
+
+  private updateLimitsFromHeaders(headers: any) {
+    const limit = headers["x-ratelimit-limit"];
+    const remaining = headers["x-ratelimit-remaining"];
+    const reset = headers["x-ratelimit-reset"];
+
+    if (limit !== undefined || remaining !== undefined) {
+      StatusService.updateLimit({
+        service: "aviationstack",
+        requests_limit: limit ? parseInt(limit, 10) : null,
+        requests_remaining: remaining ? parseInt(remaining, 10) : null,
+        reset_at: reset ? new Date(parseInt(reset, 10) * 1000).toISOString() : null,
+      });
     }
   }
 
@@ -119,9 +141,23 @@ export class AviationStackAdapter implements IFlightProvider {
           if (departureActual) {
             status = FlightStatus.ACTIVE;
           } else if (departureScheduled) {
-            const isFuture =
-              new Date(departureScheduled).getTime() > Date.now();
-            status = isFuture ? FlightStatus.SCHEDULED : FlightStatus.ACTIVE;
+            const now = Date.now();
+            const schedDepartureTime = new Date(departureScheduled).getTime();
+            const isFuture = schedDepartureTime > now;
+            
+            if (isFuture) {
+              status = FlightStatus.SCHEDULED;
+            } else {
+              // If it's in the past, check if it should have landed by now
+              const estimatedArrival = arrivalEstimated ? new Date(arrivalEstimated).getTime() : null;
+              if (estimatedArrival && now > (estimatedArrival + 3600000)) { // 1 hour buffer after estimated arrival
+                status = FlightStatus.LANDED;
+              } else if (now > (schedDepartureTime + 43200000)) { // 12 hours after scheduled departure
+                status = FlightStatus.LANDED;
+              } else {
+                status = FlightStatus.ACTIVE;
+              }
+            }
           }
         }
 

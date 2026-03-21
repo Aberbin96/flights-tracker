@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { FlightService } from "@/services/flight/flightService";
+import { VerificationService } from "@/services/flight/verificationService";
 import { AviationStackAdapter } from "@/services/flight/adapters/AviationStackAdapter";
 import { AeroDataBoxAdapter } from "@/services/flight/adapters/AeroDataBoxAdapter";
 import { TRACKED_AIRPORTS } from "@/constants/flights";
@@ -36,23 +37,43 @@ export async function GET(request: Request) {
     const flightService = new FlightService(providers);
     let totalCount = 0;
     const providersUsed = new Set<string>();
+    const allFailedProviders: Record<string, string> = {};
 
     const airportsToSync = targetAirport ? [targetAirport] : TRACKED_AIRPORTS;
 
     for (const airport of airportsToSync) {
       console.log(`[Sync] Starting sync for ${airport}...`);
       const result = await flightService.syncAirport(airport);
+      
       if (result.success) {
         totalCount += result.count;
         result.providersUsed.forEach((p) => providersUsed.add(p));
       }
+      
+      if (result.failedProviders) {
+        Object.assign(allFailedProviders, result.failedProviders);
+      }
+
       await new Promise((resolve) => setTimeout(resolve, 1500));
     }
 
+    // 3. Run Advanced Verification
+    let verifiedCount = 0;
+    try {
+      const verificationService = new VerificationService();
+      const verifyResult = await verificationService.verifyStuckFlights();
+      verifiedCount = verifyResult.verifiedCount;
+    } catch (vError) {
+      console.error("[Sync] Verification failed:", vError);
+      Sentry.captureException(vError);
+    }
+
     return NextResponse.json({
-      message: "Sync successful",
+      message: totalCount > 0 ? "Sync successful" : "Sync completed (no new data)",
       total_count: totalCount,
+      verified_count: verifiedCount,
       providers_used: Array.from(providersUsed),
+      failed_providers: Object.keys(allFailedProviders).length > 0 ? allFailedProviders : undefined,
     });
   } catch (error: unknown) {
     console.error("[Sync] Global Error:", error);

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { FlightStatus, FlightRecord } from "@/types/flight";
 import { IFlightProvider } from "../types";
+import { StatusService } from "../statusService";
 
 interface AeroDataBoxFlight {
   number: string;
@@ -75,14 +76,17 @@ export class AeroDataBoxAdapter implements IFlightProvider {
         },
       );
 
+      const { data: responseBody, headers } = response;
+      this.updateLimitsFromHeaders(headers);
+
       const departures = (
-        (response.data.departures as AeroDataBoxFlight[]) || []
+        (responseBody.departures as AeroDataBoxFlight[]) || []
       ).map((f) => ({
         ...f,
         direction: "Departure",
       }));
       const arrivals = (
-        (response.data.arrivals as AeroDataBoxFlight[]) || []
+        (responseBody.arrivals as AeroDataBoxFlight[]) || []
       ).map((f) => ({
         ...f,
         direction: "Arrival",
@@ -121,7 +125,10 @@ export class AeroDataBoxAdapter implements IFlightProvider {
         },
       );
 
-      const data = response.data || [];
+      const { data: responseBody, headers } = response;
+      this.updateLimitsFromHeaders(headers);
+
+      const data = responseBody || [];
       // AeroDataBox returns an array of flight instances for that number
       return this.mapRecords(Array.isArray(data) ? data : [data]);
     } catch (error) {
@@ -130,6 +137,21 @@ export class AeroDataBoxAdapter implements IFlightProvider {
         error,
       );
       return [];
+    }
+  }
+
+  private updateLimitsFromHeaders(headers: any) {
+    const limit = headers["x-ratelimit-requests-limit"];
+    const remaining = headers["x-ratelimit-requests-remaining"];
+    const reset = headers["x-ratelimit-requests-reset"];
+
+    if (limit !== undefined || remaining !== undefined) {
+      StatusService.updateLimit({
+        service: "aerodatabox",
+        requests_limit: limit ? parseInt(limit, 10) : null,
+        requests_remaining: remaining ? parseInt(remaining, 10) : null,
+        reset_at: reset ? new Date(parseInt(reset, 10) * 1000).toISOString() : null,
+      });
     }
   }
 
@@ -159,9 +181,23 @@ export class AeroDataBoxAdapter implements IFlightProvider {
           } else if (departureActual) {
             status = FlightStatus.ACTIVE;
           } else if (departureScheduled) {
-            const isFuture =
-              new Date(departureScheduled).getTime() > Date.now();
-            status = isFuture ? FlightStatus.SCHEDULED : FlightStatus.ACTIVE;
+            const now = Date.now();
+            const schedDepartureTime = new Date(departureScheduled).getTime();
+            const isFuture = schedDepartureTime > now;
+            
+            if (isFuture) {
+              status = FlightStatus.SCHEDULED;
+            } else {
+              // If it's in the past, check if it should have landed by now
+              const estArrival = arrivalEstimated ? new Date(arrivalEstimated).getTime() : null;
+              if (estArrival && now > (estArrival + 3600000)) { // 1 hour buffer after estimated arrival
+                status = FlightStatus.LANDED;
+              } else if (now > (schedDepartureTime + 43200000)) { // 12 hours after scheduled departure
+                status = FlightStatus.LANDED;
+              } else {
+                status = FlightStatus.ACTIVE;
+              }
+            }
           }
         }
 
