@@ -1,8 +1,6 @@
 name: Enrich Aircraft Data
 
 on:
-  schedule:
-    - cron: "45 * * * *"
   workflow_dispatch:
 
 jobs:
