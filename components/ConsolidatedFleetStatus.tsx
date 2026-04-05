@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Icon } from "./atoms/Icon";
 import { Tooltip } from "./atoms/Tooltip";
 import { AirlineStats } from "@/app/[locale]/page";
+import { formatCaracasTime } from "@/utils/date";
 
 interface ConsolidatedFleetStatusProps {
   flights: FlightRecord[];
@@ -183,16 +184,7 @@ export function ConsolidatedFleetStatus({
                 <div className="flex flex-wrap gap-2">
                   {group.flights.map((flight) => {
                     // Format time (HH:MM)
-                    const scheduledTime = flight.departure_scheduled
-                      ? new Date(flight.departure_scheduled).toLocaleTimeString(
-                          "en-US",
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          },
-                        )
-                      : "--:--";
+                    const scheduledTime = formatCaracasTime(flight.departure_scheduled);
 
                     const tailText = flight.tail_number
                       ? ` | ${flight.tail_number}`

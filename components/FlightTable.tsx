@@ -9,6 +9,7 @@ import { Badge, BadgeVariant } from "./atoms/Badge";
 import { Button } from "./atoms/Button";
 import { CARGO_AIRLINES } from "@/constants/flights";
 import { Tooltip } from "./atoms/Tooltip";
+import { formatCaracasTime, calculateActualCaracasTime } from "@/utils/date";
 
 interface FlightTableProps {
   flights: FlightRecord[];
@@ -38,36 +39,6 @@ export function FlightTable({
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Helper to format time
-  const formatTime = (dateStr?: string | null) => {
-    if (!dateStr) return "--:--";
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
-    } catch {
-      return "--:--";
-    }
-  };
-
-  const calculateActualTime = (scheduled?: string | null, delay?: number) => {
-    if (!scheduled) return "--:--";
-    if (!delay) return formatTime(scheduled);
-    try {
-      const date = new Date(scheduled);
-      date.setMinutes(date.getMinutes() + delay);
-      return date.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
-    } catch {
-      return "--:--";
-    }
-  };
 
   const filteredFlights = useMemo(() => {
     return flights
@@ -162,8 +133,8 @@ export function FlightTable({
                 statusText = t("delayed");
               }
 
-              const scheduledTime = formatTime(flight.departure_scheduled);
-              const actualTime = calculateActualTime(
+              const scheduledTime = formatCaracasTime(flight.departure_scheduled);
+              const actualTime = calculateActualCaracasTime(
                 flight.departure_scheduled,
                 flight.delay_minutes,
               );

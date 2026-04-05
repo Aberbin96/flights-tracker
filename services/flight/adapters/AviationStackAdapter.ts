@@ -161,15 +161,27 @@ export class AviationStackAdapter implements IFlightProvider {
           }
         }
 
+        // Normalize timestamps to ISO format to avoid environment-dependent parsing
+        const normalizeToUtc = (ts: string | null) => {
+          if (!ts) return null;
+          if (ts.includes("Z") || ts.includes("+") || (ts.includes("-") && ts.split("-").length > 3)) return ts;
+          return ts.replace(" ", "T") + "Z";
+        };
+
+        const arrEstUtc = normalizeToUtc(arrivalEstimated);
+        const arrActUtc = normalizeToUtc(arrivalActual);
+        const depActUtc = normalizeToUtc(departureActual);
+        const depSchedUtc = normalizeToUtc(departureScheduled);
+
         const flightDate =
           flight.flight_date ||
-          (departureScheduled && departureScheduled.split("T")[0]) ||
+          (depSchedUtc && depSchedUtc.split("T")[0]) ||
           new Date().toISOString().split("T")[0];
 
         let delayMinutes = flight.departure.delay || 0;
-        if (departureScheduled && departureActual) {
-          const scheduledTime = new Date(departureScheduled).getTime();
-          const actualTime = new Date(departureActual).getTime();
+        if (depSchedUtc && depActUtc) {
+          const scheduledTime = new Date(depSchedUtc).getTime();
+          const actualTime = new Date(depActUtc).getTime();
           delayMinutes = Math.max(
             0,
             Math.round((actualTime - scheduledTime) / 60000),
@@ -187,9 +199,9 @@ export class AviationStackAdapter implements IFlightProvider {
           delay_minutes: delayMinutes,
           captured_at: new Date().toISOString(),
           flight_date: flightDate,
-          arrival_estimated: arrivalEstimated,
-          arrival_actual: arrivalActual,
-          departure_scheduled: departureScheduled,
+          arrival_estimated: arrEstUtc,
+          arrival_actual: arrActUtc,
+          departure_scheduled: depSchedUtc,
           arrival_iata: arrivalIata,
           is_system_closed: false,
           tail_number: flight.aircraft?.registration || null,

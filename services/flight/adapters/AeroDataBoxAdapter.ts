@@ -14,9 +14,11 @@ interface AeroDataBoxFlight {
     } | null;
     scheduledTime: {
       local: string | null;
+      utc: string | null;
     } | null;
     revisedTime: {
       local: string | null;
+      utc: string | null;
     } | null;
   } | null;
   arrival: {
@@ -25,9 +27,11 @@ interface AeroDataBoxFlight {
     } | null;
     scheduledTime: {
       local: string | null;
+      utc: string | null;
     } | null;
     revisedTime: {
       local: string | null;
+      utc: string | null;
     } | null;
   } | null;
   status: string;
@@ -167,10 +171,25 @@ export class AeroDataBoxAdapter implements IFlightProvider {
 
         let origin = "UNKNOWN";
         let arrivalIata = "UNKNOWN";
-        const departureScheduled = f.departure?.scheduledTime?.local || null;
-        const arrivalEstimated = f.arrival?.scheduledTime?.local || null;
-        const arrivalActual = f.arrival?.revisedTime?.local || null;
-        const departureActual = f.departure?.revisedTime?.local || null;
+
+        // Prefer UTC over local to avoid timezone ambiguity during server-side processing
+        const departureScheduled = f.departure?.scheduledTime?.utc || f.departure?.scheduledTime?.local || null;
+        const arrivalEstimated = f.arrival?.scheduledTime?.utc || f.arrival?.scheduledTime?.local || null;
+        const arrivalActual = f.arrival?.revisedTime?.utc || f.arrival?.revisedTime?.local || null;
+        const departureActual = f.departure?.revisedTime?.utc || f.departure?.revisedTime?.local || null;
+
+        // Ensure timestamps have 'Z' suffix if they are UTC but missing the indicator
+        const normalizeToUtc = (ts: string | null) => {
+          if (!ts) return null;
+          if (ts.includes("Z") || ts.includes("+") || (ts.includes("-") && ts.split("-").length > 3)) return ts;
+          // If it's a UTC field from AeroDataBox, it might be space-separated or missing Z
+          return ts.replace(" ", "T") + "Z";
+        };
+
+        const depSchedUtc = normalizeToUtc(departureScheduled);
+        const arrEstUtc = normalizeToUtc(arrivalEstimated);
+        const arrActUtc = normalizeToUtc(arrivalActual);
+        const depActUtc = normalizeToUtc(departureActual);
 
         let status = this.mapStatus(f.status);
 
@@ -189,7 +208,7 @@ export class AeroDataBoxAdapter implements IFlightProvider {
               status = FlightStatus.SCHEDULED;
             } else {
               // If it's in the past, check if it should have landed by now
-              const estArrival = arrivalEstimated ? new Date(arrivalEstimated).getTime() : null;
+              const estArrival = arrEstUtc ? new Date(arrEstUtc).getTime() : null;
               if (estArrival && now > (estArrival + 3600000)) { // 1 hour buffer after estimated arrival
                 status = FlightStatus.LANDED;
               } else if (now > (schedDepartureTime + 43200000)) { // 12 hours after scheduled departure
@@ -213,9 +232,9 @@ export class AeroDataBoxAdapter implements IFlightProvider {
         }
 
         let delayMinutes = 0;
-        if (departureScheduled && departureActual) {
-          const scheduled = new Date(departureScheduled).getTime();
-          const actual = new Date(departureActual).getTime();
+        if (depSchedUtc && depActUtc) {
+          const scheduled = new Date(depSchedUtc).getTime();
+          const actual = new Date(depActUtc).getTime();
           delayMinutes = Math.max(0, Math.round((actual - scheduled) / 60000));
         }
 
@@ -226,13 +245,13 @@ export class AeroDataBoxAdapter implements IFlightProvider {
           status: status,
           delay_minutes: delayMinutes,
           captured_at: new Date().toISOString(),
-          flight_date: departureScheduled
-            ? departureScheduled.split("T")[0]
+          flight_date: depSchedUtc
+            ? depSchedUtc.split("T")[0]
             : new Date().toISOString().split("T")[0],
-          arrival_actual: arrivalActual,
-          arrival_estimated: arrivalEstimated,
+          arrival_actual: arrActUtc,
+          arrival_estimated: arrEstUtc,
           arrival_iata: arrivalIata,
-          departure_scheduled: departureScheduled,
+          departure_scheduled: depSchedUtc,
           is_system_closed: false,
           tail_number: f.aircraft?.reg || null,
           icao24: f.aircraft?.modeS || null,
