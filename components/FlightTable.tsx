@@ -118,19 +118,27 @@ export function FlightTable({
               let badgeVariant: BadgeVariant = "success";
               let statusText = t("onTime");
 
-              if (
-                String(flight.status).toLowerCase() === FlightStatus.CANCELLED
-              ) {
+              if (String(flight.status).toLowerCase() === FlightStatus.CANCELLED) {
                 badgeVariant = "error";
                 statusText = t("cancelled");
-              } else if (
-                String(flight.status).toLowerCase() === FlightStatus.UNKNOWN
-              ) {
+              } else if (String(flight.status).toLowerCase() === FlightStatus.UNKNOWN) {
                 badgeVariant = "neutral";
                 statusText = t("unknown");
+              } else if (String(flight.status).toLowerCase() === FlightStatus.DIVERTED) {
+                badgeVariant = "error";
+                statusText = t("statusDiverted");
+              } else if (String(flight.status).toLowerCase() === FlightStatus.LANDED) {
+                badgeVariant = "neutral";
+                statusText = t("statusLanded");
+              } else if (String(flight.status).toLowerCase() === FlightStatus.ACTIVE) {
+                badgeVariant = flight.delay_minutes > 15 ? "warning" : "success";
+                statusText = t("statusActive");
               } else if (flight.delay_minutes > 15) {
                 badgeVariant = "warning";
                 statusText = t("delayed");
+              } else {
+                badgeVariant = "success";
+                statusText = t("statusScheduled");
               }
 
               const scheduledTime = formatCaracasTime(flight.departure_scheduled);

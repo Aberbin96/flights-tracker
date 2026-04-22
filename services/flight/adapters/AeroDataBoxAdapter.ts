@@ -67,7 +67,7 @@ export class AeroDataBoxAdapter implements IFlightProvider {
             "x-rapidapi-host": this.host,
           },
           params: {
-            offsetMinutes: -120,
+            offsetMinutes: -360,
             durationMinutes: 720,
             withLeg: true,
             direction: "Both",
