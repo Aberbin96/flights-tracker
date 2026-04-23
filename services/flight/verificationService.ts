@@ -143,6 +143,17 @@ export class VerificationService {
       alt_ft: state.baro_altitude ? state.baro_altitude * 3.28084 : null
     };
 
+    // --- DELAY UPDATE FOR ACTIVE-BUT-GROUNDED FLIGHTS ---
+    // AviationStack caps departure.delay at 60 min. If the API marks a flight as ACTIVE
+    // but OpenSky confirms it's still on the ground, recalculate delay from elapsed time.
+    if (scheduledDeparture && flight.status === FlightStatus.ACTIVE && state.on_ground) {
+      const diffMinutes = Math.floor((now.getTime() - scheduledDeparture.getTime()) / (1000 * 60));
+      if (diffMinutes > 30) {
+        flightLog.actions.push(`Active flight still on ground. Updating delay to +${diffMinutes}m.`);
+        await supabaseAdmin.from("flights_history").update({ delay_minutes: diffMinutes }).eq("id", flight.id);
+      }
+    }
+
     let newStatus: FlightStatus | null = null;
 
     // --- TAKEOFF DETECTION ---
