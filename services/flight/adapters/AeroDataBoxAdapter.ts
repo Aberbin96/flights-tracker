@@ -20,6 +20,7 @@ interface AeroDataBoxFlight {
       local: string | null;
       utc: string | null;
     } | null;
+    delay: number | null;
   } | null;
   arrival: {
     airport: {
@@ -33,6 +34,7 @@ interface AeroDataBoxFlight {
       local: string | null;
       utc: string | null;
     } | null;
+    delay: number | null;
   } | null;
   status: string;
   aircraft: {
@@ -232,7 +234,9 @@ export class AeroDataBoxAdapter implements IFlightProvider {
         }
 
         let delayMinutes = 0;
-        if (depSchedUtc && depActUtc) {
+        if (f.departure?.delay != null && f.departure.delay > 0) {
+          delayMinutes = f.departure.delay;
+        } else if (depSchedUtc && depActUtc) {
           const scheduled = new Date(depSchedUtc).getTime();
           const actual = new Date(depActUtc).getTime();
           delayMinutes = Math.max(0, Math.round((actual - scheduled) / 60000));

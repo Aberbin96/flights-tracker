@@ -31,17 +31,17 @@ export class VerificationService {
   async runAutoVerification(): Promise<{ processedCount: number; updatedCount: number; logs: any[] }> {
     try {
       const now = new Date();
-      const minus1Hour = new Date(now.getTime() - 1 * 60 * 60 * 1000).toISOString();
+      const minus8Hours = new Date(now.getTime() - 8 * 60 * 60 * 1000).toISOString();
       const plus3Hours = new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString();
 
       // Find flights that are "Relevant Now"
       // 1. Scheduled to depart soon or recently past
-      // 2. Currently active
+      // 2. Currently active (may have departed up to 8h ago and still be airborne)
       const { data: candidates, error: fetchError } = await supabaseAdmin
         .from("flights_history")
         .select("*")
         .in("status", [FlightStatus.SCHEDULED, FlightStatus.ACTIVE, FlightStatus.UNKNOWN])
-        .gt("departure_scheduled", minus1Hour)
+        .gt("departure_scheduled", minus8Hours)
         .lt("departure_scheduled", plus3Hours);
 
       if (fetchError || !candidates) {
